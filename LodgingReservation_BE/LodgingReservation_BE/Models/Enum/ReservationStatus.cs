@@ -1,4 +1,4 @@
-﻿namespace LodgingReservation_BE.Models
+﻿namespace LodgingReservation_BE.Models.Enum
 {
     public enum ReservationStatus
     {

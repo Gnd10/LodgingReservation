@@ -8,7 +8,7 @@ namespace LodgingReservation_BE.Models
     public class Reservation
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Required]
         [Column("BOOKING_CODE")]
@@ -24,8 +24,9 @@ namespace LodgingReservation_BE.Models
         [Required]
         [Column("PROMOTION_ID")]
         [ForeignKey(nameof(Promotion))]
-        public long PromotionId { get; set; }
+        public long? PromotionId { get; set; }
         public Promotion? Promotion { get; set; }
+
 
         [Required]
         [Column("CHECK_IN_DATE")]
@@ -45,7 +46,7 @@ namespace LodgingReservation_BE.Models
         public int TotalNights { get; set; } 
 
         [Required, Column("ROOM_SUB_TOTAL",TypeName = "decimal(12,2)")]
-        public decimal RoomSubtotal { get; set; } 
+        public decimal RoomSubtotal { get; internal set; } 
 
         [Required, Column("LATE_CHECK_OUT_FEE",TypeName = "decimal(12,2)")]
         public decimal LateCheckoutFee { get; set; } 
@@ -58,5 +59,9 @@ namespace LodgingReservation_BE.Models
 
         [Required, Column("GRAND_TOTAL", TypeName = "decimal(12,2)")]
         public decimal GrandTotal { get; set; }
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public ICollection<ReservationRoom> ReservationRooms { get; set; } = new List<ReservationRoom>();
+        public ICollection<ReservationAddOn> ReservationAddOns { get; set; } = new List<ReservationAddOn>();
     }
 }

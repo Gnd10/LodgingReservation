@@ -8,7 +8,7 @@ namespace LodgingReservation_BE.Models
     public class Payment
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Required]
         [Column("RESERVATION_ID")]
@@ -26,10 +26,12 @@ namespace LodgingReservation_BE.Models
         public decimal AmountPaid { get; set; }
 
         [Required]
-        public Enum.PaymentMethod PaymentMethod { get; set; }
+        [Column("METHOD")]
+        public Enum.PaymentMethod Method { get; set; }
 
         [Required]
-        public Enum.PaymentStatus PaymentStatus { get; set; }
+        [Column("STATUS")]
+        public Enum.PaymentStatus Status { get; set; }
 
 
     }
