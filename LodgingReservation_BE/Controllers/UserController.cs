@@ -27,32 +27,60 @@ namespace LodgingReservation_BE.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetProfile()
         {
-            var profile = await _userService.GetProfileAsync(GetCurrentUserId());
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized(new { message = "Invalid token payload." });
+
+            var profile = await _userService.GetProfileAsync(userId);
             if (profile == null) return NotFound(new { message = "User not found." });
+
             return Ok(profile);
         }
 
         [HttpPut("me")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
         {
-            var updated = await _userService.UpdateProfileAsync(GetCurrentUserId(), request);
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized(new { message = "Invalid token payload." });
+
+            var updated = await _userService.UpdateProfileAsync(userId, request);
             if (updated == null) return NotFound(new { message = "User not found." });
+
             return Ok(updated);
         }
 
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
         {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized(new { message = "Invalid token payload." });
+
             try
             {
-                var success = await _userService.ChangePasswordAsync(GetCurrentUserId(), request);
+                var success = await _userService.ChangePasswordAsync(userId, request);
                 if (!success) return NotFound(new { message = "User not found." });
+
                 return Ok(new { message = "Password changed successfully." });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
+        }
+
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized(new { message = "Invalid token payload." });
+
+            var success = await _userService.DeleteAsync(userId);
+            if (!success) return NotFound(new { message = "User not found." });
+
+            return Ok(new { message = "Account deleted successfully." });
         }
     }
 }
