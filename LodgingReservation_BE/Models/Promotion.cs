@@ -14,7 +14,7 @@ namespace LodgingReservation_BE.Models
         [Column("PROMO_CODE")]
         public string PromoCode { get; set; } = string.Empty;
 
-        [Required] 
+        [Required]
         [Column("DISCOUNT_PERCENTAGE", TypeName = "decimal(5,2)")]
         public decimal DiscountPercentage { get; set; }
 
