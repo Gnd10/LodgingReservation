@@ -53,7 +53,7 @@ namespace LodgingReservation_BE.Services
             {
                 if (!System.Enum.TryParse<ReservationStatus>(queryParams.Status, true, out var parsedStatus))
                 {
-                    throw new ValidationException($"Status '{queryParams.Status}' tidak valid.");
+                    throw new ArgumentException($"Status '{queryParams.Status}' tidak valid.");
                 }
                 reservations = reservations.Where(r => r.Status == parsedStatus).ToList();
             }
