@@ -26,6 +26,9 @@ namespace LodgingReservation_BE.Models
         [Column("STATUS")]
         public Enum.RoomStatus Status { get; set; }
 
+        [Column("IMAGE_URL")]
+        public string? ImageUrl { get; set; }
+
         public ICollection<ReservationRoom> ReservationRooms { get; set; } = new List<ReservationRoom>();
     }
 }

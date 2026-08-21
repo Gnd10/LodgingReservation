@@ -20,23 +20,30 @@ namespace LodgingReservation_BE.Services
         {
             var users = await _userRepository.GetAllAsync();
             return users
-                .Select(u => new UserSummary { Id = u.Id, Nama = u.Nama, Email = u.Email })
+                .Select(u => new UserSummary { 
+                    Id = u.Id, 
+                    Nama = u.Nama, 
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber
+                })
                 .ToList();
         }
         public async Task<UserSummary?> GetByIdAsync(long id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) return null;
+            if (user == null || user.IsDeleted) return null;
 
-            return new UserSummary { Id = user.Id, Nama = user.Nama, Email = user.Email };
+            return new UserSummary { 
+                Id = user.Id, 
+                Nama = user.Nama, 
+                Email = user.Email, 
+                PhoneNumber = user.PhoneNumber, 
+            };
         }
-
-
-
         public async Task<UserSummary> UpdateAsync(long id, UpdateUserRequest request)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 throw new NotFoundException("User tidak ditemukan.");
             }
@@ -51,6 +58,7 @@ namespace LodgingReservation_BE.Services
 
             user.Nama = request.Nama;
             user.Email = request.Email;
+            user.PhoneNumber = request.PhoneNumber;
 
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
@@ -60,15 +68,20 @@ namespace LodgingReservation_BE.Services
             _userRepository.Update(user);
             await _userRepository.SaveChangesAsync();
 
-            return new UserSummary { Id = user.Id, Nama = user.Nama, Email = user.Email };
+            return new UserSummary { 
+                Id = user.Id, 
+                Nama = user.Nama, 
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
         }
 
         public async Task DeleteAsync(long id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
-                throw new NotFoundException("User tidak ditemukan.");
+                throw new NotFoundException("User tidak ditemukan");
             }
 
             try
@@ -79,7 +92,7 @@ namespace LodgingReservation_BE.Services
             catch (DbUpdateException)
             {
                 throw new ConflictException(
-                    "User tidak dapat dihapus karena masih memiliki data reservasi.");
+                    "User tidak dapat dihapus karena masih memiliki data reservasi");
             }
         }
     }

@@ -3,7 +3,10 @@ using LodgingReservation_BE.Exceptions;
 using LodgingReservation_BE.Models;
 using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
+using LodgingReservation_BE.Middleware;
+using Microsoft.AspNetCore.Http.HttpResults;
 using System.ComponentModel.DataAnnotations;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace LodgingReservation_BE.Services
 {
@@ -161,7 +164,7 @@ namespace LodgingReservation_BE.Services
 
             if (reservation.Status == ReservationStatus.Cancelled)
             {
-                throw new ConflictException("Reservasi yang sudah dibatalkan tidak dapat diupdate.");
+                throw new ValidationException("Reservasi yang sudah dibatalkan tidak dapat diupdate.");
             }
 
             var existingReservationRoom = reservation.ReservationRooms.FirstOrDefault();

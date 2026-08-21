@@ -64,5 +64,7 @@ namespace LodgingReservation_BE.Controllers
             await _userService.DeleteAsync(id);
             return NoContent();
         }
+
+
     }
 }

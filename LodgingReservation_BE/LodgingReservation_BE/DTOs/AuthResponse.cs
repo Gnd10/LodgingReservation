@@ -1,4 +1,6 @@
-﻿namespace LodgingReservation_BE.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace LodgingReservation_BE.DTOs
 {
     public class AuthResponse
     {
@@ -11,5 +13,6 @@
         public long Id { get; set; }
         public string Nama { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
     }
 }

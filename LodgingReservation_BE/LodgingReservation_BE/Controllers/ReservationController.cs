@@ -2,6 +2,7 @@
 using LodgingReservation_BE.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace LodgingReservation_BE.Controllers
 {
@@ -40,7 +41,7 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpPost]
-            //[Authorize]
+            [Authorize]
             public async Task<IActionResult> Create([FromBody] CreateReservation dto)
             {
             var userIdClaim = User.FindFirst("userId");
@@ -54,7 +55,7 @@ namespace LodgingReservation_BE.Controllers
                 ReservationResponse? result = await _reservationService.CreateAsync(dto, userId);
                 return Created($"/api/reservations/{result!.Id}", result);
             }
-            catch (ArgumentException ex)
+            catch (ValidationException ex)
             {
                 return BadRequest(new { status = "error", message = ex.Message });
             }
@@ -69,8 +70,8 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpPut("{id:long}")]
-            // [Authorize]
-            public async Task<IActionResult> Update(long id, [FromBody] UpdateReservation dto)
+            [Authorize]
+             public async Task<IActionResult> Update(long id, [FromBody] UpdateReservation dto)
             {
                 try
                 {
@@ -78,7 +79,7 @@ namespace LodgingReservation_BE.Controllers
                     if (result == null) return NotFound();
                     return Ok(result);
                 }
-                catch (ArgumentException ex)
+                catch (ValidationException ex)
                 {
                     return BadRequest(new { status = "error", message = ex.Message });
                 }
