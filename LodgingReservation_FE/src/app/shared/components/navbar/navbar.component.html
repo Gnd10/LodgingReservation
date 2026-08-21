@@ -1,0 +1,30 @@
+<nav class="navbar">
+  <div class="nav-brand">
+    <a routerLink="/rooms">StayHub</a>
+  </div>
+
+  <div class="nav-links">
+    <a routerLink="/rooms" routerLinkActive="active">Katalog Kamar</a>
+
+    <ng-container *ngIf="isLoggedIn() && getRole() === 'Customer'">
+      <a routerLink="/my-history" routerLinkActive="active">Riwayat Booking</a>
+    </ng-container>
+
+    <ng-container *ngIf="isLoggedIn() && getRole() === 'Admin'">
+      <a routerLink="/admin/dashboard" routerLinkActive="active"
+        >Admin Dashboard</a
+      >
+    </ng-container>
+
+    <div class="auth-section">
+      <ng-container *ngIf="!isLoggedIn()">
+        <a routerLink="/login" class="btn-login">Login</a>
+      </ng-container>
+
+      <ng-container *ngIf="isLoggedIn()">
+        <span class="user-greeting">Halo, {{ getUserName() }}</span>
+        <button (click)="logout()" class="btn-logout">Logout</button>
+      </ng-container>
+    </div>
+  </div>
+</nav>
