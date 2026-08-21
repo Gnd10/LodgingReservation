@@ -1,7 +1,9 @@
 ﻿using LodgingReservation_BE.DTOs;
+using LodgingReservation_BE.Exceptions;
 using LodgingReservation_BE.Models;
 using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
+using System.ComponentModel.DataAnnotations;
 
 namespace LodgingReservation_BE.Services
 {
@@ -43,26 +45,46 @@ namespace LodgingReservation_BE.Services
         }
 
         // PERBAIKAN 1: Sesuai dengan interface (menerima status dan date)
-        public async Task<List<Reservation>> GetAllAsync(string? status, DateTime? date)
+        public async Task<List<Reservation>> GetAllAsync(ReservationQueryParams queryParams)
         {
             var reservations = await _reservationRepository.GetAllAsync("User", "Promotion", "ReservationRooms.Room.RoomType");
 
-            if (!string.IsNullOrEmpty(status))
+            if (!string.IsNullOrEmpty(queryParams.Status))
             {
-                if (!System.Enum.TryParse<ReservationStatus>(status, true, out var parsedStatus))
+                if (!System.Enum.TryParse<ReservationStatus>(queryParams.Status, true, out var parsedStatus))
                 {
-                    throw new ArgumentException($"Status '{status}' tidak valid.");
+                    throw new ValidationException($"Status '{queryParams.Status}' tidak valid.");
                 }
                 reservations = reservations.Where(r => r.Status == parsedStatus).ToList();
             }
 
-            if (date.HasValue)
+            if (!string.IsNullOrWhiteSpace(queryParams.RoomType))
             {
-                reservations = reservations.Where(r => r.CheckInDate.Date == date.Value.Date).ToList();
+                reservations = reservations
+                    .Where(
+                            r => r.ReservationRooms.Any(rr =>
+                            rr.Room != null &&
+                            rr.Room.RoomType != null &&
+                            rr.Room.RoomType.Name.Contains(
+                    queryParams.RoomType,
+                    StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
             }
+
+            if (!string.IsNullOrWhiteSpace(queryParams.BookingCode))
+            {
+                reservations = reservations
+                    .Where(r => r.BookingCode.Contains(queryParams.BookingCode, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            var page = queryParams.Page < 1 ? 1 : queryParams.Page;
+            var limit = queryParams.Limit < 1 ? 10 : queryParams.Limit;
+            reservations = reservations.Skip((page - 1) * limit).Take(limit).ToList();
 
             return reservations;
         }
+
 
         // PERBAIKAN 2: Menggunakan CreateReservation dan ReservationResponse
         public async Task<ReservationResponse?> CreateAsync(CreateReservation request, long userId)
@@ -131,16 +153,81 @@ namespace LodgingReservation_BE.Services
         }
 
         // PERBAIKAN 3: Menambahkan UpdateAsync sesuai interface
-        public async Task<ReservationResponse?> UpdateAsync(long id, CreateReservation request)
+        public async Task<ReservationResponse?> UpdateAsync(long id, UpdateReservation request)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(id);
+            var reservation = await _reservationRepository.GetByIdAsync(
+                id, "ReservationRooms.Room.RoomType", "ReservationAddOns");
             if (reservation == null) return null;
 
-            reservation.CheckInDate = request.CheckInDate;
-            reservation.CheckOutDate = request.CheckOutDate;
+            if (reservation.Status == ReservationStatus.Cancelled)
+            {
+                throw new ConflictException("Reservasi yang sudah dibatalkan tidak dapat diupdate.");
+            }
 
-            _reservationRepository.Update(reservation);
-            await _reservationRepository.SaveChangesAsync();
+            var existingReservationRoom = reservation.ReservationRooms.FirstOrDefault();
+            if (existingReservationRoom?.Room == null)
+            {
+                throw new NotFoundException("Data kamar pada reservasi ini tidak ditemukan.");
+            }
+
+            var room = existingReservationRoom.Room;
+
+            var effectiveLateCheckoutFee = request.LateCheckoutFee ?? reservation.LateCheckoutFee;
+            var effectiveAddOns = request.AddOns ?? reservation.ReservationAddOns
+                .Select(a => new ReservationAddOnItem
+                {
+                    ExtraServiceId = a.ExtraServiceId,
+                    Quantity = a.Quantity
+                }).ToList();
+
+            var calculationInput = new CreateReservation
+            {
+                RoomId = existingReservationRoom.RoomId,
+                PromotionId = request.PromotionId,
+                CheckInDate = request.CheckInDate,
+                CheckOutDate = request.CheckOutDate,
+                LateCheckoutFee = effectiveLateCheckoutFee,
+                AddOns = effectiveAddOns
+            };
+
+            await _reservationRepository.BeginTransactionAsync();
+            try
+            {
+                var calculation = await _calculator.CalculateAsync(
+                    calculationInput, room, _extraServiceRepository, _promotionRepository);
+
+                reservation.CheckInDate = request.CheckInDate;
+                reservation.CheckOutDate = request.CheckOutDate;
+                reservation.TotalNights = calculation.TotalNights;
+                reservation.RoomSubtotal = calculation.RoomSubtotal;
+                reservation.LateCheckoutFee = effectiveLateCheckoutFee;
+                reservation.AddOnsTotal = calculation.AddOnsTotal;
+                reservation.PromoDiscount = calculation.PromoDiscount;
+                reservation.GrandTotal = calculation.GrandTotal;
+                reservation.PromotionId = calculation.PromotionIdToSave;
+                _reservationRepository.Update(reservation);
+
+                existingReservationRoom.TotalRoomCost = calculation.RoomSubtotal;
+                _reservationRoomRepository.Update(existingReservationRoom);
+
+                foreach (var oldAddOn in reservation.ReservationAddOns.ToList())
+                {
+                    _reservationAddOnRepository.Delete(oldAddOn);
+                }
+                foreach (var addOn in calculation.AddOns)
+                {
+                    addOn.Reservation = reservation;
+                    await _reservationAddOnRepository.AddAsync(addOn);
+                }
+
+                await _reservationRepository.SaveChangesAsync();
+                await _reservationRepository.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _reservationRepository.RollbackTransactionAsync();
+                throw;
+            }
 
             var updated = await GetByIdAsync(id);
             return updated != null ? ToResponseDto(updated) : null;

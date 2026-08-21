@@ -18,7 +18,7 @@ namespace LodgingReservation_BE.Models
         [Required]
         [Column("EXTRA_SERVICE_ID")]
         [ForeignKey(nameof(ExtraService))]
-        public long? ExtraServiceId { get; set; }
+        public long ExtraServiceId { get; set; }
         public ExtraService? ExtraService { get; set; }
 
         [Required]

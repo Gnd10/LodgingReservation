@@ -17,11 +17,11 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpGet] 
-            public async Task<IActionResult> GetReservations([FromQuery] string? status, [FromQuery] DateTime? date)
+            public async Task<IActionResult> GetReservations([FromQuery] ReservationQueryParams queryParams)
             {
                 try
                 {
-                    var reservations = await _reservationService.GetAllAsync(status, date);
+                    var reservations = await _reservationService.GetAllAsync(queryParams);
                     var response = reservations.Select(_reservationService.ToResponseDto).ToList();
                     return Ok(response);
                 }
@@ -66,7 +66,40 @@ namespace LodgingReservation_BE.Controllers
             {
                 return StatusCode(500, new { status = "error", message = "Terjadi kesalahan pada server." });
             }
-        }
-        }
+            }
+
+            [HttpPut("{id:long}")]
+            // [Authorize]
+            public async Task<IActionResult> Update(long id, [FromBody] UpdateReservation dto)
+            {
+                try
+                {
+                    var result = await _reservationService.UpdateAsync(id, dto);
+                    if (result == null) return NotFound();
+                    return Ok(result);
+                }
+                catch (ArgumentException ex)
+                {
+                    return BadRequest(new { status = "error", message = ex.Message });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Conflict(new { status = "error", message = ex.Message });
+                }
+                catch (Exception)
+                {
+                    return StatusCode(500, new { status = "error", message = "Terjadi kesalahan pada server." });
+                }
+            }
+
+            [HttpDelete("{id:long}")]
+            // [Authorize]
+            public async Task<IActionResult> Cancel(long id)
+            {
+                var success = await _reservationService.CancelAsync(id);
+                if (!success) return NotFound();
+                return NoContent();
+            }
+    }
 
 }
