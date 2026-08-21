@@ -1,4 +1,5 @@
 ﻿using LodgingReservation_BE.Models;
+using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
 using LodgingReservation_BE.DTOs;
 
@@ -13,30 +14,32 @@ namespace LodgingReservation_BE.Services
             public decimal AddOnsTotal { get; set; }
             public decimal PromoDiscount { get; set; }
             public decimal GrandTotal { get; set; }
-            public long PromotionIdToSave { get; set; }
+            public long? PromotionIdToSave { get; set; } 
             public List<ReservationAddOn> AddOns { get; set; } = new();
         }
 
         public async Task<CalculationResult> CalculateAsync(
             CreateReservation request,
-            Room room,
+            List<Room> rooms, 
             IRepository<ExtraService> extraServiceRepo,
             IRepository<Promotion> promotionRepo)
         {
             var result = new CalculationResult();
 
-            // 1. Hitung Total Malam
             if (request.CheckOutDate.Date <= request.CheckInDate.Date)
             {
                 throw new ArgumentException("Tanggal check-out harus setelah tanggal check-in.");
             }
             result.TotalNights = (request.CheckOutDate.Date - request.CheckInDate.Date).Days;
 
-            // 2. Hitung Subtotal Kamar
-            decimal pricePerNight = room.RoomType?.BasePrice ?? 0;
-            result.RoomSubtotal = pricePerNight * result.TotalNights;
+            decimal totalRoomNightCost = 0;
+            foreach (var room in rooms)
+            {
+                decimal roomPrice = room.RoomType?.BasePrice ?? 0;
+                totalRoomNightCost += roomPrice * result.TotalNights;
+            }
+            result.RoomSubtotal = totalRoomNightCost;
 
-            // 3. Hitung Add-Ons
             if (request.AddOns != null && request.AddOns.Any())
             {
                 foreach (var item in request.AddOns)
@@ -44,7 +47,17 @@ namespace LodgingReservation_BE.Services
                     var extraService = await extraServiceRepo.GetByIdAsync(item.ExtraServiceId);
                     if (extraService != null)
                     {
-                        decimal subTotalAddOn = extraService.Price * item.Quantity;
+                        decimal subTotalAddOn = 0;
+
+                        if (extraService.Type == UnitType.NIGHT)
+                        {
+                            subTotalAddOn = extraService.Price * item.Quantity * result.TotalNights;
+                        }
+                        else
+                        {
+                            subTotalAddOn = extraService.Price * item.Quantity;
+                        }
+
                         result.AddOnsTotal += subTotalAddOn;
 
                         result.AddOns.Add(new ReservationAddOn
@@ -58,27 +71,29 @@ namespace LodgingReservation_BE.Services
                 }
             }
 
-            // 4. Kalkulasi Diskon Promo (Dengan MaxDiscountCap)
             if (request.PromotionId.HasValue && request.PromotionId.Value > 0)
             {
                 var promotion = await promotionRepo.GetByIdAsync(request.PromotionId.Value);
-                if (promotion != null && promotion.IsActive && promotion.ValidUntil >= DateTime.UtcNow)
+                if (promotion != null && promotion.IsActive && promotion.ValidUntil.Date >= DateTime.UtcNow.Date)
                 {
                     result.PromotionIdToSave = promotion.Id;
+                    
                     decimal calculatedDiscount = result.RoomSubtotal * (promotion.DiscountPercentage / 100);
 
-                    // Batasi dengan MaxDiscountCap
-                    result.PromoDiscount = calculatedDiscount > promotion.MaxDiscountCap ? promotion.MaxDiscountCap : calculatedDiscount;
+                    result.PromoDiscount = calculatedDiscount > promotion.MaxDiscountCap 
+                        ? promotion.MaxDiscountCap 
+                        : calculatedDiscount;
                 }
             }
 
-            // 5. Hitung Grand Total
             if (request.LateCheckoutFee < 0)
             {
                 throw new ArgumentException("Late checkout fee tidak boleh bernilai negatif.");
             }
             decimal lateCheckoutFee = request.LateCheckoutFee;
+            
             result.GrandTotal = (result.RoomSubtotal + result.AddOnsTotal + lateCheckoutFee) - result.PromoDiscount;
+            
             if (result.GrandTotal < 0) result.GrandTotal = 0;
 
             return result;

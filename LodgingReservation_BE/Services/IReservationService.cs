@@ -11,6 +11,5 @@ namespace LodgingReservation_BE.Services
         Task<ReservationResponse?> UpdateAsync(long id, CreateReservation request);
         Task<bool> CancelAsync(long id);
         ReservationResponse ToResponseDto(Reservation reservation);
-
     }
 }
