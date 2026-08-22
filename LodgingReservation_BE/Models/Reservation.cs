@@ -21,7 +21,6 @@ namespace LodgingReservation_BE.Models
         public long UserId { get; set; }
         public User? User { get; set; }
 
-        [Required]
         [Column("PROMOTION_ID")]
         [ForeignKey(nameof(Promotion))]
         public long? PromotionId { get; set; }

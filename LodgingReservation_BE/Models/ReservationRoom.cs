@@ -27,7 +27,5 @@ namespace LodgingReservation_BE.Models
         [Required]
         [Column("TOTAL_ROOM_COST", TypeName = "decimal(12,2)")]
         public decimal TotalRoomCost { get; set; }
-
-        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

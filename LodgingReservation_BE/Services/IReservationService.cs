@@ -7,6 +7,7 @@ namespace LodgingReservation_BE.Services
     {
         Task<Reservation?> GetByIdAsync(long id);
         Task<List<Reservation>> GetAllAsync(string? status, DateTime? date);
+        Task<List<Reservation>> GetUserHistoryAsync(long userId);
         Task<ReservationResponse?> CreateAsync(CreateReservation request, long userId);
         Task<ReservationResponse?> UpdateAsync(long id, CreateReservation request);
         Task<bool> CancelAsync(long id);
