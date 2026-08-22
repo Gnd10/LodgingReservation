@@ -71,6 +71,10 @@ namespace LodgingReservation_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PAID_AT");
+
                     b.Property<long>("ReservationId")
                         .HasColumnType("bigint")
                         .HasColumnName("RESERVATION_ID");
@@ -166,12 +170,8 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnName("PROMO_DISCOUNT");
 
                     b.Property<long?>("PromotionId")
-                        .IsRequired()
                         .HasColumnType("bigint")
                         .HasColumnName("PROMOTION_ID");
-
-                    b.Property<long?>("ReservationRoomId")
-                        .HasColumnType("bigint");
 
                     b.Property<decimal>("RoomSubtotal")
                         .HasColumnType("decimal(12,2)")
@@ -197,8 +197,6 @@ namespace LodgingReservation_BE.Migrations
                         .IsUnique();
 
                     b.HasIndex("PromotionId");
-
-                    b.HasIndex("ReservationRoomId");
 
                     b.HasIndex("UserId");
 
@@ -259,6 +257,10 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("ROOM_ID");
 
+                    b.Property<long>("RoomTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ROOM_TYPE_ID");
+
                     b.Property<decimal>("TotalRoomCost")
                         .HasColumnType("decimal(12,2)")
                         .HasColumnName("TOTAL_ROOM_COST");
@@ -268,6 +270,8 @@ namespace LodgingReservation_BE.Migrations
                     b.HasIndex("ReservationId");
 
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("RoomTypeId");
 
                     b.ToTable("ReservationRooms");
                 });
@@ -325,6 +329,10 @@ namespace LodgingReservation_BE.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("DESCRIPTION");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("IMAGE_URL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -396,12 +404,7 @@ namespace LodgingReservation_BE.Migrations
                     b.HasOne("LodgingReservation_BE.Models.Promotion", "Promotion")
                         .WithMany("Reservations")
                         .HasForeignKey("PromotionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("LodgingReservation_BE.Models.ReservationRoom", null)
-                        .WithMany("Reservations")
-                        .HasForeignKey("ReservationRoomId");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("LodgingReservation_BE.Models.User", "User")
                         .WithMany("Reservations")
@@ -447,9 +450,17 @@ namespace LodgingReservation_BE.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("LodgingReservation_BE.Models.RoomType", "RoomType")
+                        .WithMany()
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Reservation");
 
                     b.Navigation("Room");
+
+                    b.Navigation("RoomType");
                 });
 
             modelBuilder.Entity("LodgingReservation_BE.Models.Room", b =>
@@ -480,11 +491,6 @@ namespace LodgingReservation_BE.Migrations
                     b.Navigation("ReservationAddOns");
 
                     b.Navigation("ReservationRooms");
-                });
-
-            modelBuilder.Entity("LodgingReservation_BE.Models.ReservationRoom", b =>
-                {
-                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("LodgingReservation_BE.Models.Room", b =>

@@ -8,7 +8,7 @@ namespace LodgingReservation_BE.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -24,7 +24,7 @@ namespace LodgingReservation_BE.Controllers
             return long.TryParse(idClaim, out var id) ? id : 0;
         }
 
-        [HttpGet("me")]
+        [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
             var userId = GetCurrentUserId();
@@ -36,7 +36,7 @@ namespace LodgingReservation_BE.Controllers
             return Ok(profile);
         }
 
-        [HttpPut("me")]
+        [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
         {
             var userId = GetCurrentUserId();
@@ -71,7 +71,7 @@ namespace LodgingReservation_BE.Controllers
             }
         }
 
-        [HttpDelete("me")]
+        [HttpDelete("profile")]
         public async Task<IActionResult> DeleteAccount()
         {
             var userId = GetCurrentUserId();

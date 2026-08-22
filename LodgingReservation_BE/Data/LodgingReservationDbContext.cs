@@ -1,4 +1,4 @@
-﻿using LodgingReservation_BE.Models;
+using LodgingReservation_BE.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LodgingReservation_BE.Data
@@ -78,6 +78,12 @@ namespace LodgingReservation_BE.Data
                 .HasOne(rr => rr.Room)
                 .WithMany(room => room.ReservationRooms)
                 .HasForeignKey(rr => rr.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReservationRoom>()
+                .HasOne(rr => rr.RoomType)
+                .WithMany()
+                .HasForeignKey(rr => rr.RoomTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ReservationAddOn>()

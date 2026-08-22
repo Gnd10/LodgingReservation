@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LodgingReservation_BE.Models
@@ -19,6 +19,12 @@ namespace LodgingReservation_BE.Models
         [ForeignKey(nameof(Room))]
         public long RoomId { get; set; }
         public Room? Room { get; set; }
+
+        [Required]
+        [Column("ROOM_TYPE_ID")]
+        [ForeignKey(nameof(RoomType))]
+        public long RoomTypeId { get; set; }
+        public RoomType? RoomType { get; set; }
 
         [Required]
         [Column("PRICE_PER_NIGHT", TypeName = "decimal(12,2)")]

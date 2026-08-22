@@ -49,15 +49,6 @@
               loginForm.get('password')?.touched
             "
           />
-          <input 
-            id="password"
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            placeholder=""
-
-          />
-
-          
         </div>
         <small
           *ngIf="
@@ -71,6 +62,9 @@
           >
           <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
             >Password minimal 6 karakter.</span
+          >
+          <span *ngIf="loginForm.get('password')?.errors?.['passwordStrength']"
+            >Password harus mengandung huruf besar, huruf kecil, dan angka.</span
           >
         </small>
       </div>

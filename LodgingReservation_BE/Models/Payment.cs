@@ -1,4 +1,4 @@
-﻿using LodgingReservation_BE.Models.Enum;
+using LodgingReservation_BE.Models.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,6 +31,8 @@ namespace LodgingReservation_BE.Models
         [Required]
         public Enum.PaymentStatus Status { get; set; }
 
-
+        [Required]
+        [Column("PAID_AT")]
+        public DateTime PaidAt { get; set; } = DateTime.UtcNow;
     }
 }

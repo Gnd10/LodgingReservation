@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LodgingReservation_BE.Migrations
 {
     [DbContext(typeof(LodgingReservationDbContext))]
-    [Migration("20260822123345_InitialCreate")]
+    [Migration("20260822144448_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -72,8 +72,11 @@ namespace LodgingReservation_BE.Migrations
 
                     b.Property<string>("Method")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("METHOD");
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("PAID_AT");
 
                     b.Property<long>("ReservationId")
                         .HasColumnType("bigint")
@@ -81,8 +84,7 @@ namespace LodgingReservation_BE.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("STATUS");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -121,7 +123,7 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnName("PROMO_CODE");
 
                     b.Property<DateTime>("ValidUntil")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("VALID_UNTIL");
 
                     b.HasKey("Id");
@@ -151,11 +153,11 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnName("BOOKING_CODE");
 
                     b.Property<DateTime>("CheckInDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("CHECK_IN_DATE");
 
                     b.Property<DateTime>("CheckOutDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("CHECK_OUT_DATE");
 
                     b.Property<decimal>("GrandTotal")
@@ -171,7 +173,6 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnName("PROMO_DISCOUNT");
 
                     b.Property<long?>("PromotionId")
-                        .IsRequired()
                         .HasColumnType("bigint")
                         .HasColumnName("PROMOTION_ID");
 
@@ -218,20 +219,17 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnName("EXTRA_SERVICE_ID");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("integer")
-                        .HasColumnName("QUANTITY");
+                        .HasColumnType("integer");
 
                     b.Property<long>("ReservationId")
                         .HasColumnType("bigint")
                         .HasColumnName("RESERVATION_ID");
 
                     b.Property<decimal>("SubTotal")
-                        .HasColumnType("decimal(12,2)")
-                        .HasColumnName("SUB_TOTAL");
+                        .HasColumnType("decimal(12,2)");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(12,2)")
-                        .HasColumnName("UNIT_PRICE");
+                        .HasColumnType("decimal(12,2)");
 
                     b.HasKey("Id");
 
@@ -239,7 +237,7 @@ namespace LodgingReservation_BE.Migrations
 
                     b.HasIndex("ReservationId");
 
-                    b.ToTable("RESERVATION_ADD_ON");
+                    b.ToTable("ReservationAddOns");
                 });
 
             modelBuilder.Entity("LodgingReservation_BE.Models.ReservationRoom", b =>
@@ -262,6 +260,10 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("ROOM_ID");
 
+                    b.Property<long>("RoomTypeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ROOM_TYPE_ID");
+
                     b.Property<decimal>("TotalRoomCost")
                         .HasColumnType("decimal(12,2)")
                         .HasColumnName("TOTAL_ROOM_COST");
@@ -272,7 +274,9 @@ namespace LodgingReservation_BE.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("RESERVATION_ROOM");
+                    b.HasIndex("RoomTypeId");
+
+                    b.ToTable("ReservationRooms");
                 });
 
             modelBuilder.Entity("LodgingReservation_BE.Models.Room", b =>
@@ -449,9 +453,17 @@ namespace LodgingReservation_BE.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("LodgingReservation_BE.Models.RoomType", "RoomType")
+                        .WithMany()
+                        .HasForeignKey("RoomTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Reservation");
 
                     b.Navigation("Room");
+
+                    b.Navigation("RoomType");
                 });
 
             modelBuilder.Entity("LodgingReservation_BE.Models.Room", b =>

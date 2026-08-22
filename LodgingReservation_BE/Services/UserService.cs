@@ -65,9 +65,6 @@ namespace LodgingReservation_BE.Services
             {
                 throw new InvalidOperationException("Current password does not match.");
             }
-            user.IsDeleted = true;
-            _userRepository.Update(user);
-            await _userRepository.SaveChangesAsync();
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _context.SaveChangesAsync();

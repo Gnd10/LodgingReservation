@@ -4,31 +4,24 @@ using LodgingReservation_BE.Repositories;
 
 namespace LodgingReservation_BE.Services
 {
-    public class ExtraService : IExtraServiceService
+    public class ExtraServiceService : IExtraServiceService
     {
-        private readonly IRepository<ExtraService> _extraServiceRepository;
+        private readonly IRepository<Models.ExtraService> _extraServiceRepository;
 
-        public ExtraServiceService(IRepository<ExtraService> extraServiceRepository)
+        public ExtraServiceService(IRepository<Models.ExtraService> extraServiceRepository)
         {
             _extraServiceRepository = extraServiceRepository;
         }
 
-        public async Task<IEnumerable<ExtraServiceResponseDto>> GetAllAsync(bool activeOnly = true)
+        public async Task<IEnumerable<ExtraServiceResponseDto>> GetAllAsync()
         {
             var services = await _extraServiceRepository.GetAllAsync();
-
-            if (activeOnly)
-            {
-                services = services.Where(s => s.IsActive).ToList();
-            }
 
             return services.Select(s => new ExtraServiceResponseDto
             {
                 Id = s.Id,
                 Name = s.Name,
-                Description = s.Description,
-                Price = s.Price,
-                IsActive = s.IsActive
+                Price = s.Price
             });
         }
 
@@ -41,9 +34,7 @@ namespace LodgingReservation_BE.Services
             {
                 Id = service.Id,
                 Name = service.Name,
-                Description = service.Description,
-                Price = service.Price,
-                IsActive = service.IsActive
+                Price = service.Price
             };
         }
     }

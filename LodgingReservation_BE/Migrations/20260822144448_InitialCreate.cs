@@ -35,9 +35,9 @@ namespace LodgingReservation_BE.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PROMO_CODE = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     DISCOUNT_PERCENTAGE = table.Column<decimal>(type: "numeric(5,2)", nullable: false),
-                    MAX_DISCOUNT_CAP = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
-                    VALID_UNTIL = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    IS_ACTIVE = table.Column<bool>(type: "boolean", nullable: false)
+                    VALID_UNTIL = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IS_ACTIVE = table.Column<bool>(type: "boolean", nullable: false),
+                    MAX_DISCOUNT_CAP = table.Column<decimal>(type: "numeric(12,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -107,9 +107,9 @@ namespace LodgingReservation_BE.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     BOOKING_CODE = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     USER_ID = table.Column<long>(type: "bigint", nullable: false),
-                    PROMOTION_ID = table.Column<long>(type: "bigint", nullable: false),
-                    CHECK_IN_DATE = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CHECK_OUT_DATE = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    PROMOTION_ID = table.Column<long>(type: "bigint", nullable: true),
+                    CHECK_IN_DATE = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CHECK_OUT_DATE = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     STATUS = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     TOTAL_NIGHTS = table.Column<int>(type: "integer", nullable: false),
                     ROOM_SUB_TOTAL = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
@@ -144,8 +144,9 @@ namespace LodgingReservation_BE.Migrations
                     RESERVATION_ID = table.Column<long>(type: "bigint", nullable: false),
                     INVOICE_NUMBER = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     AMOUNT_PAID = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
-                    METHOD = table.Column<string>(type: "text", nullable: false),
-                    STATUS = table.Column<string>(type: "text", nullable: false)
+                    Method = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    PAID_AT = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -159,28 +160,28 @@ namespace LodgingReservation_BE.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RESERVATION_ADD_ON",
+                name: "ReservationAddOns",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RESERVATION_ID = table.Column<long>(type: "bigint", nullable: false),
                     EXTRA_SERVICE_ID = table.Column<long>(type: "bigint", nullable: false),
-                    QUANTITY = table.Column<int>(type: "integer", nullable: false),
-                    UNIT_PRICE = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
-                    SUB_TOTAL = table.Column<decimal>(type: "numeric(12,2)", nullable: false)
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
+                    SubTotal = table.Column<decimal>(type: "numeric(12,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RESERVATION_ADD_ON", x => x.Id);
+                    table.PrimaryKey("PK_ReservationAddOns", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RESERVATION_ADD_ON_EXTRA_SERVICE_EXTRA_SERVICE_ID",
+                        name: "FK_ReservationAddOns_EXTRA_SERVICE_EXTRA_SERVICE_ID",
                         column: x => x.EXTRA_SERVICE_ID,
                         principalTable: "EXTRA_SERVICE",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_RESERVATION_ADD_ON_RESERVATION_RESERVATION_ID",
+                        name: "FK_ReservationAddOns_RESERVATION_RESERVATION_ID",
                         column: x => x.RESERVATION_ID,
                         principalTable: "RESERVATION",
                         principalColumn: "Id",
@@ -188,29 +189,36 @@ namespace LodgingReservation_BE.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RESERVATION_ROOM",
+                name: "ReservationRooms",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RESERVATION_ID = table.Column<long>(type: "bigint", nullable: false),
                     ROOM_ID = table.Column<long>(type: "bigint", nullable: false),
+                    ROOM_TYPE_ID = table.Column<long>(type: "bigint", nullable: false),
                     PRICE_PER_NIGHT = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
                     TOTAL_ROOM_COST = table.Column<decimal>(type: "numeric(12,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RESERVATION_ROOM", x => x.Id);
+                    table.PrimaryKey("PK_ReservationRooms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RESERVATION_ROOM_RESERVATION_RESERVATION_ID",
+                        name: "FK_ReservationRooms_RESERVATION_RESERVATION_ID",
                         column: x => x.RESERVATION_ID,
                         principalTable: "RESERVATION",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RESERVATION_ROOM_ROOM_ROOM_ID",
+                        name: "FK_ReservationRooms_ROOM_ROOM_ID",
                         column: x => x.ROOM_ID,
                         principalTable: "ROOM",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReservationRooms_ROOM_TYPE_ROOM_TYPE_ID",
+                        column: x => x.ROOM_TYPE_ID,
+                        principalTable: "ROOM_TYPE",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -249,24 +257,29 @@ namespace LodgingReservation_BE.Migrations
                 column: "USER_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RESERVATION_ADD_ON_EXTRA_SERVICE_ID",
-                table: "RESERVATION_ADD_ON",
+                name: "IX_ReservationAddOns_EXTRA_SERVICE_ID",
+                table: "ReservationAddOns",
                 column: "EXTRA_SERVICE_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RESERVATION_ADD_ON_RESERVATION_ID",
-                table: "RESERVATION_ADD_ON",
+                name: "IX_ReservationAddOns_RESERVATION_ID",
+                table: "ReservationAddOns",
                 column: "RESERVATION_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RESERVATION_ROOM_RESERVATION_ID",
-                table: "RESERVATION_ROOM",
+                name: "IX_ReservationRooms_RESERVATION_ID",
+                table: "ReservationRooms",
                 column: "RESERVATION_ID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RESERVATION_ROOM_ROOM_ID",
-                table: "RESERVATION_ROOM",
+                name: "IX_ReservationRooms_ROOM_ID",
+                table: "ReservationRooms",
                 column: "ROOM_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationRooms_ROOM_TYPE_ID",
+                table: "ReservationRooms",
+                column: "ROOM_TYPE_ID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ROOM_ROOM_NUMBER",
@@ -293,10 +306,10 @@ namespace LodgingReservation_BE.Migrations
                 name: "PAYMENT");
 
             migrationBuilder.DropTable(
-                name: "RESERVATION_ADD_ON");
+                name: "ReservationAddOns");
 
             migrationBuilder.DropTable(
-                name: "RESERVATION_ROOM");
+                name: "ReservationRooms");
 
             migrationBuilder.DropTable(
                 name: "EXTRA_SERVICE");
