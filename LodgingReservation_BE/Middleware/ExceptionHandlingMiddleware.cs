@@ -33,24 +33,29 @@ namespace LodgingReservation_BE.Middleware
             var code = HttpStatusCode.InternalServerError;
             var message = "An unexpected error occurred.";
 
-            if (exception is RoomNotAvailableException)
+            if (exception is NotFoundException || exception is ResourceNotFoundException)
+            {
+                code = HttpStatusCode.NotFound;
+                message = exception.Message;
+            }
+            else if (exception is ConflictException)
+            {
+                code = HttpStatusCode.Conflict;
+                message = exception.Message;
+            }
+            else if (exception is ValidationException || exception is RoomNotAvailableException)
             {
                 code = HttpStatusCode.BadRequest;
                 message = exception.Message;
             }
-            else if (exception is ResourceNotFoundException)
+            else if (exception is UnauthorizedAppException || exception is UnauthorizedAccessException)
             {
-                code = HttpStatusCode.NotFound;
+                code = HttpStatusCode.Unauthorized;
                 message = exception.Message;
             }
             else if (exception is ArgumentException || exception is InvalidOperationException)
             {
                 code = HttpStatusCode.BadRequest;
-                message = exception.Message;
-            }
-            else if (exception is UnauthorizedAccessException)
-            {
-                code = HttpStatusCode.Unauthorized;
                 message = exception.Message;
             }
 

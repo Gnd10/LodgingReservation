@@ -19,7 +19,7 @@ namespace LodgingReservation_BE.Controllers
     public async Task<IActionResult> GetRoomTypes()
     {
       var roomTypes = await _roomTypeRepository.GetAllAsync();
-      var response = roomType.Select(rt => new
+      var response = roomTypes.Select(rt => new
       {
         rt.Id,
         rt.Name,

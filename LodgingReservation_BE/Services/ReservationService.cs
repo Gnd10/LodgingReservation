@@ -14,6 +14,7 @@ namespace LodgingReservation_BE.Services
         private readonly IRepository<ExtraService> _extraServiceRepository;
         private readonly IRepository<Promotion> _promotionRepository;
         private readonly IRepository<ReservationAddOn> _reservationAddOnRepository;
+        private readonly IRepository<Payment> _paymentRepository;
         private readonly ReservationCalculator _calculator;
         private readonly ILogger<ReservationService> _logger;
 
@@ -24,6 +25,7 @@ namespace LodgingReservation_BE.Services
             IRepository<ExtraService> extraServiceRepository,
             IRepository<Promotion> promotionRepository,
             IRepository<ReservationAddOn> reservationAddOnRepository,
+            IRepository<Payment> paymentRepository,
             ReservationCalculator calculator,
             ILogger<ReservationService> logger)
         {
@@ -33,6 +35,7 @@ namespace LodgingReservation_BE.Services
             _extraServiceRepository = extraServiceRepository;
             _promotionRepository = promotionRepository;
             _reservationAddOnRepository = reservationAddOnRepository;
+            _paymentRepository = paymentRepository;
             _calculator = calculator;
             _logger = logger;
         }
@@ -64,12 +67,18 @@ namespace LodgingReservation_BE.Services
             return reservations;
         }
 
+        public async Task<List<Reservation>> GetUserHistoryAsync(long userId)
+        {
+            var reservations = await _reservationRepository.GetAllAsync("User", "Promotion", "ReservationRooms.Room.RoomType");
+            return reservations.Where(r => r.UserId == userId).ToList();
+        }
+
         public async Task<ReservationResponse?> CreateAsync(CreateReservation request, long userId)
         {
             await _reservationRepository.BeginTransactionAsync();
             try
             {
-                var room = new List<Room>();
+                var rooms = new List<Room>();
                 foreach (var roomId in request.RoomIds)
                 {
                     var room = await _roomRepository.GetByIdAsync(roomId, "RoomType");
@@ -94,7 +103,7 @@ namespace LodgingReservation_BE.Services
                     Status = ReservationStatus.Confirmed,
                     TotalNights = calculation.TotalNights,
                     RoomSubtotal = calculation.RoomSubtotal,
-                    LateCheckoutFee = request.LateCheckoutFee,
+                    LateCheckoutFee = calculation.LateCheckoutFee,
                     AddOnsTotal = calculation.AddOnsTotal,
                     PromoDiscount = calculation.PromoDiscount,
                     GrandTotal = calculation.GrandTotal
@@ -112,7 +121,7 @@ namespace LodgingReservation_BE.Services
                         Reservation = reservation,
                         RoomId = room.Id,
                         PricePerNight = room.RoomType?.BasePrice ?? 0,
-                        TotalRoomCost = calculation.RoomSubtotal //fix this, so use from reservation calculator
+                        TotalRoomCost = (room.RoomType?.BasePrice ?? 0) * calculation.TotalNights * (1 - calculation.TierDiscount)
                     });
                 }
 
@@ -122,11 +131,10 @@ namespace LodgingReservation_BE.Services
                     await _reservationAddOnRepository.AddAsync(addOn);
                 }
 
-                // Payment 
                 var payment = new Payment
                 {
                     Reservation = reservation,
-                    InvoiceNumber = "INV-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(), // Invoice code
+                    InvoiceNumber = "INV-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                     AmountPaid = calculation.GrandTotal,
                     Method = PaymentMethod.QRIS,
                     Status = PaymentStatus.PAID
@@ -139,13 +147,74 @@ namespace LodgingReservation_BE.Services
                 var created = await GetByIdAsync(reservation.Id);
                 return created != null ? ToResponseDto(created) : null;
             }
-
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Reservasi gagal untuk user {UserId}", userId);
                 await _reservationRepository.RollbackTransactionAsync();
                 throw;
             }
+        }
+
+        public async Task<ReservationResponse?> UpdateAsync(long id, CreateReservation request)
+        {
+            var reservation = await _reservationRepository.GetByIdAsync(id);
+            if (reservation == null) return null;
+
+            reservation.CheckInDate = request.CheckInDate;
+            reservation.CheckOutDate = request.CheckOutDate;
+
+            _reservationRepository.Update(reservation);
+            await _reservationRepository.SaveChangesAsync();
+
+            var updated = await GetByIdAsync(id);
+            return updated != null ? ToResponseDto(updated) : null;
+        }
+
+        public async Task<bool> CancelAsync(long id)
+        {
+            var reservation = await _reservationRepository.GetByIdAsync(id, "ReservationRooms.Room");
+            if (reservation == null) return false;
+
+            reservation.Status = ReservationStatus.Cancelled;
+            _reservationRepository.Update(reservation);
+
+            if (reservation.ReservationRooms != null)
+            {
+                foreach (var resRoom in reservation.ReservationRooms)
+                {
+                    if (resRoom.Room != null)
+                    {
+                        resRoom.Room.Status = RoomStatus.AVAILABLE;
+                        _roomRepository.Update(resRoom.Room);
+                    }
+                }
+            }
+
+            await _reservationRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public ReservationResponse ToResponseDto(Reservation reservation)
+        {
+            var firstRoom = reservation.ReservationRooms?.FirstOrDefault();
+
+            return new ReservationResponse
+            {
+                Id = reservation.Id,
+                BookingCode = reservation.BookingCode,
+                UserId = reservation.UserId,
+                UserName = reservation.User?.Nama ?? string.Empty,
+                CheckInDate = reservation.CheckInDate,
+                CheckOutDate = reservation.CheckOutDate,
+                TotalNights = reservation.TotalNights,
+                RoomSubtotal = reservation.RoomSubtotal,
+                AddOnsTotal = reservation.AddOnsTotal,
+                PromoDiscount = reservation.PromoDiscount,
+                GrandTotal = reservation.GrandTotal,
+                Status = reservation.Status.ToString(),
+                RoomNumber = firstRoom?.Room?.RoomNumber ?? string.Empty,
+                RoomTypeName = firstRoom?.Room?.RoomType?.Name ?? string.Empty
+            };
         }
     }
 }

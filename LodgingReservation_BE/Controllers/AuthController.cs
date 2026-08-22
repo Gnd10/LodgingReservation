@@ -8,39 +8,39 @@ namespace LodgingReservation_BE.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        AuthController(IUserService userService)
+        public AuthController(IAuthService authService)
         {
-            _userService = userService;
+            _authService = authService;
         }
     
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto Request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
             try
             {
-                var result = await _userService.RegisterAsync(request);
+                var result = await _authService.RegisterAsync(request);
                 return StatusCode(201, result);
             }
             catch (Exception ex)
             {
-                return BadRequest (new { message = ex.message});
+                return BadRequest(new { message = ex.Message });
             }
         }
-        
+    
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             try
             {
-                var result = await _userService.LoginAsync(request);
+                var result = await _authService.LoginAsync(request);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
-    }
+    } 
 }
