@@ -6,82 +6,37 @@ namespace LodgingReservation_BE.Services
 {
     public class ExtraServiceService : IExtraServiceService
     {
-        private readonly IRepository<ExtraService> _repository;
+        private readonly IRepository<ExtraService> _extraServiceRepository;
 
-        public ExtraServiceService(IRepository<ExtraService> repository)
+        public ExtraServiceService(IRepository<ExtraService> extraServiceRepository)
         {
-            _repository = repository;
+            _extraServiceRepository = extraServiceRepository;
         }
 
-        public async Task<List<ExtraServiceResponse>> GetAllAsync(string? search = null)
+        public async Task<IEnumerable<ExtraServiceResponseDto>> GetAllAsync()
         {
-            var items = await _repository.GetAllAsync();
+            var services = await _extraServiceRepository.GetAllAsync();
 
-            if (!string.IsNullOrWhiteSpace(search))
+
+            return services.Select(s => new ExtraServiceResponseDto
             {
-                items = items.Where(x => x.Name.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-
-            return items.Select(ToResponse).ToList();
+                Id = s.Id,
+                Name = s.Name,
+                Price = s.Price
+            });
         }
 
-        public async Task<ExtraServiceResponse?> GetByIdAsync(long id)
+        public async Task<ExtraServiceResponseDto?> GetByIdAsync(long id)
         {
-            var entity = await _repository.GetByIdAsync(id);
-            return entity == null ? null : ToResponse(entity);
-        }
+            var service = await _extraServiceRepository.GetByIdAsync(id);
+            if (service == null) return null;
 
-        public async Task<ExtraServiceResponse> CreateAsync(ExtraServiceRequest request)
-        {
-            var entity = new ExtraService
+            return new ExtraServiceResponseDto
             {
-                Name = request.Name.Trim(),
-                Price = request.Price,
-                Type = request.Type
+                Id = service.Id,
+                Name = service.Name,
+                Price = service.Price
             };
-
-            await _repository.AddAsync(entity);
-            await _repository.SaveChangesAsync();
-            return ToResponse(entity);
         }
-
-        public async Task<ExtraServiceResponse?> UpdateAsync(long id, ExtraServiceRequest request)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) return null;
-
-            entity.Name = request.Name.Trim();
-            entity.Price = request.Price;
-            entity.Type = request.Type;
-
-            _repository.Update(entity);
-            await _repository.SaveChangesAsync();
-            return ToResponse(entity);
-        }
-
-        public async Task<bool> DeleteAsync(long id)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) return false;
-
-            try
-            {
-                _repository.Delete(entity);
-                await _repository.SaveChangesAsync();
-                return true;
-            }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException)
-            {
-                throw new InvalidOperationException("Extra service tidak dapat dihapus karena sudah digunakan pada reservasi.");
-            }
-        }
-
-        private static ExtraServiceResponse ToResponse(ExtraService entity) => new()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Price = entity.Price,
-            Type = entity.Type
-        };
     }
 }

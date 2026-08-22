@@ -9,7 +9,7 @@ namespace LodgingReservation_BE.Services
         Task<RoomResponse?> CreateAsync(CreateRoom dto);
         Task<List<RoomResponse>> GetByStatusAsync(string status);
         RoomResponse ToResponseDto(Room room);
-
+        Task<List<AvailableRoomTypeDto>> GetAvailableRoomTypesAsync(DateTime checkIn, DateTime checkOut, int guests);
         Task<RoomResponse?> GetRoomTypeByIdAsync(long id);
     }
 }

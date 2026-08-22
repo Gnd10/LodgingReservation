@@ -68,7 +68,9 @@ namespace LodgingReservation.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EMAIL = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PASSWORD = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    NAMA = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    NAMA = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PHONE_NUMBER = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    IS_DELETED = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -83,7 +85,8 @@ namespace LodgingReservation.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ROOM_TYPE_ID = table.Column<long>(type: "bigint", nullable: false),
                     ROOM_NUMBER = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    STATUS = table.Column<string>(type: "text", nullable: false)
+                    STATUS = table.Column<string>(type: "text", nullable: false),
+                    IMAGE_URL = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

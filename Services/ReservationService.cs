@@ -1,7 +1,12 @@
 ﻿using LodgingReservation_BE.DTOs;
+using LodgingReservation_BE.Exceptions;
 using LodgingReservation_BE.Models;
 using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
+using LodgingReservation_BE.Middleware;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.ComponentModel.DataAnnotations;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace LodgingReservation_BE.Services
 {
@@ -42,22 +47,47 @@ namespace LodgingReservation_BE.Services
                 id, "User", "Promotion", "ReservationRooms.Room.RoomType", "ReservationAddOns.ExtraService");
         }
 
-        // PERBAIKAN 1: Sesuai dengan interface (menerima status)
-        public async Task<List<Reservation>> GetAllAsync(string? status)
+        // PERBAIKAN 1: Sesuai dengan interface (menerima status dan date)
+        public async Task<List<Reservation>> GetAllAsync(ReservationQueryParams queryParams)
         {
             var reservations = await _reservationRepository.GetAllAsync("User", "Promotion", "ReservationRooms.Room.RoomType");
 
-            if (!string.IsNullOrEmpty(status))
+            if (!string.IsNullOrEmpty(queryParams.Status))
             {
-                if (!System.Enum.TryParse<ReservationStatus>(status, true, out var parsedStatus))
+                if (!System.Enum.TryParse<ReservationStatus>(queryParams.Status, true, out var parsedStatus))
                 {
-                    throw new ArgumentException($"Status '{status}' tidak valid.");
+                    throw new ArgumentException($"Status '{queryParams.Status}' tidak valid.");
                 }
                 reservations = reservations.Where(r => r.Status == parsedStatus).ToList();
             }
 
+            if (!string.IsNullOrWhiteSpace(queryParams.RoomType))
+            {
+                reservations = reservations
+                    .Where(
+                            r => r.ReservationRooms.Any(rr =>
+                            rr.Room != null &&
+                            rr.Room.RoomType != null &&
+                            rr.Room.RoomType.Name.Contains(
+                    queryParams.RoomType,
+                    StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryParams.BookingCode))
+            {
+                reservations = reservations
+                    .Where(r => r.BookingCode.Contains(queryParams.BookingCode, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            var page = queryParams.Page < 1 ? 1 : queryParams.Page;
+            var limit = queryParams.Limit < 1 ? 10 : queryParams.Limit;
+            reservations = reservations.Skip((page - 1) * limit).Take(limit).ToList();
+
             return reservations;
         }
+
 
         // PERBAIKAN 2: Menggunakan CreateReservation dan ReservationResponse
         public async Task<ReservationResponse?> CreateAsync(CreateReservation request, long userId)
@@ -134,18 +164,13 @@ namespace LodgingReservation_BE.Services
 
             if (reservation.Status == ReservationStatus.Cancelled)
             {
-                throw new InvalidOperationException("Reservasi yang sudah dibatalkan tidak dapat diupdate.");
+                throw new ValidationException("Reservasi yang sudah dibatalkan tidak dapat diupdate.");
             }
 
             var existingReservationRoom = reservation.ReservationRooms.FirstOrDefault();
             if (existingReservationRoom?.Room == null)
             {
-                throw new InvalidOperationException("Data kamar pada reservasi ini tidak ditemukan.");
-            }
-
-            if (request.RoomId != existingReservationRoom.RoomId)
-            {
-                throw new ArgumentException("RoomId tidak dapat diubah setelah reservasi dibuat.");
+                throw new NotFoundException("Data kamar pada reservasi ini tidak ditemukan.");
             }
 
             var room = existingReservationRoom.Room;
@@ -213,12 +238,26 @@ namespace LodgingReservation_BE.Services
 
         public async Task<bool> CancelAsync(long id)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(id);
+            var reservation = await _reservationRepository.GetByIdAsync(id, "ReservationRooms.Room");
             if (reservation == null) return false;
+
+            if (reservation.Status == ReservationStatus.Cancelled)
+            {
+                return true;
+            }
 
             reservation.Status = ReservationStatus.Cancelled;
             _reservationRepository.Update(reservation);
+
+            var room = reservation.ReservationRooms?.FirstOrDefault()?.Room;
+            if (room != null && room.Status == RoomStatus.OCCUPIED)
+            {
+                room.Status = RoomStatus.AVAILABLE;
+                _roomRepository.Update(room);
+            }
+
             await _reservationRepository.SaveChangesAsync();
+
 
             return true;
         }

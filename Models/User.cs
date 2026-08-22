@@ -24,6 +24,15 @@ namespace LodgingReservation_BE.Models
         [MaxLength(100)]
         public string Nama { get; set; } = string.Empty;
 
+        [Column("PHONE_NUMBER")]
+        [StringLength(200)]
+        [Phone]
+        public string? PhoneNumber { get; set; }
+
+        [Required]
+        [Column("IS_DELETED")]
+        public bool IsDeleted { get; set; } = false;
+
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

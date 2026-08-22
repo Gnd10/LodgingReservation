@@ -1,8 +1,7 @@
 using LodgingReservation_BE.Models.Enum;
-
 namespace LodgingReservation_BE.DTOs
 {
-    public class ExtraServiceResponse
+    public class ExtraServiceResponseDto
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;

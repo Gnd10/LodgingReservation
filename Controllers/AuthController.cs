@@ -15,39 +15,31 @@ namespace LodgingReservation_BE.Controllers
             _authService = authService;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+            try
+            {
+                var result = await _authService.RegisterAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        {
             try
             {
                 var result = await _authService.LoginAsync(request);
-
-                if (result == null)
-                {
-                    return Unauthorized(new
-                    {
-                        status = "error",
-                        message = "Email atau password salah."
-                    });
-                }
-
-                return Ok(new
-                {
-                    status = "success",
-                    message = "Login berhasil.",
-                    data = result
-                });
+                return Ok(result);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    status = "error",
-                    message = "Terjadi kesalahan pada server."
-                });
+                return Unauthorized(new { message = ex.Message });
             }
         }
     }

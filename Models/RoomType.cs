@@ -26,6 +26,9 @@ namespace LodgingReservation_BE.Models
         [Column("DESCRIPTION")]
         public string Description { get; set; } = string.Empty;
 
+        [Column("IMAGE_URL")]
+        public string? ImageUrl { get; set; }
+
         public ICollection<Room> Rooms { get; set; } = new List<Room>();
 
     }

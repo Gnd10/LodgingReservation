@@ -75,5 +75,31 @@ namespace LodgingReservation_BE.Controllers
                 return StatusCode(500, new { message = "Terjadi kesalahan pada server", detail = ex.Message });
             }
         }
+
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailable(
+            [FromQuery] DateTime checkIn,
+            [FromQuery] DateTime checkOut,
+            [FromQuery] int guests = 1)
+        {
+            try
+            {
+                if (checkIn.Date < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Tanggal check-in tidak boleh di masa lampau." });
+                }
+                if (checkOut.Date <= checkIn.Date)
+                {
+                    return BadRequest(new { message = "Tanggal check-out harus setelah tanggal check-in." });
+                }
+
+                var availableRoomTypes = await _roomService.GetAvailableRoomTypesAsync(checkIn, checkOut, guests);
+                return Ok(availableRoomTypes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Terjadi kesalahan saat memproses data.", details = ex.Message });
+            }
+        }
     }
 }

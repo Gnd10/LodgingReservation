@@ -26,6 +26,7 @@ namespace LodgingReservation_BE.Models
         [Column("STATUS")]
         public Enum.RoomStatus Status { get; set; }
 
+
         public ICollection<ReservationRoom> ReservationRooms { get; set; } = new List<ReservationRoom>();
     }
 }

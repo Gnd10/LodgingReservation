@@ -1,9 +1,10 @@
-using LodgingReservation_BE.DTOs;
+﻿using LodgingReservation_BE.DTOs;
 
 namespace LodgingReservation_BE.Services
 {
     public interface IAuthService
     {
-        Task<LoginResponse?> LoginAsync(LoginRequest request);
+        Task<AuthResponse?> LoginAsync(LoginRequestDto request);
+        Task<AuthResponse> RegisterAsync(RegisterRequestDto request);
     }
 }

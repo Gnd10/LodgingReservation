@@ -1,5 +1,6 @@
 using LodgingReservation_BE.DTOs;
 using LodgingReservation_BE.Services;
+using LodgingReservation_BE.Models.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,12 +45,17 @@ namespace LodgingReservation_BE.Controllers
         [HttpPatch("{id:long}/status")]
         public async Task<IActionResult> UpdateStatus(long id, [FromBody] PaymentStatusRequest request)
         {
-            try
-            {
-                var result = await _service.UpdateStatusAsync(id, request);
-                return result == null ? NotFound(new { message = "Payment tidak ditemukan." }) : Ok(result);
-            }
-            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            if (!Enum.IsDefined(typeof(PaymentStatus), request.Status))
+                {
+                    return BadRequest(new { message = $"Status '{request.Status}' tidak valid. Pilih nilai enum yang sesuai." });
+                }
+
+                try
+                {
+                    var result = await _service.UpdateStatusAsync(id, request);
+                    return result == null ? NotFound(new { message = "Payment tidak ditemukan." }) : Ok(result);
+                }
+                catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
         }
     }
 }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LodgingReservation.Migrations
 {
     [DbContext(typeof(LodgingReservationDbContext))]
-    [Migration("20260820132920_InitialCreate")]
+    [Migration("20260821164013_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -213,8 +213,7 @@ namespace LodgingReservation.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ExtraServiceId")
-                        .IsRequired()
+                    b.Property<long>("ExtraServiceId")
                         .HasColumnType("bigint")
                         .HasColumnName("EXTRA_SERVICE_ID");
 
@@ -283,6 +282,10 @@ namespace LodgingReservation.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("IMAGE_URL");
 
                     b.Property<string>("RoomNumber")
                         .IsRequired()
@@ -355,6 +358,10 @@ namespace LodgingReservation.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("EMAIL");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_DELETED");
+
                     b.Property<string>("Nama")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -366,6 +373,11 @@ namespace LodgingReservation.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("PASSWORD");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PHONE_NUMBER");
 
                     b.HasKey("Id");
 

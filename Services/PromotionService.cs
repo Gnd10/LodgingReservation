@@ -1,121 +1,92 @@
+using LodgingReservation_BE.Data;
 using LodgingReservation_BE.DTOs;
-using LodgingReservation_BE.Models;
-using LodgingReservation_BE.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace LodgingReservation_BE.Services
 {
     public class PromotionService : IPromotionService
     {
-        private readonly IRepository<Promotion> _repository;
+        private readonly LodgingReservationDbContext _context;
 
-        public PromotionService(IRepository<Promotion> repository)
+        public PromotionService(LodgingReservationDbContext context)
         {
-            _repository = repository;
+            _context = context;
         }
 
-        public async Task<List<PromotionResponse>> GetAllAsync(bool? active = null)
+        public async Task<IEnumerable<PromotionDto>> GetActivePromotionsAsync()
         {
-            var items = await _repository.GetAllAsync();
-            if (active.HasValue)
-                items = items.Where(x => x.IsActive == active.Value).ToList();
+            var now = DateTime.UtcNow;
 
-            return items.OrderByDescending(x => x.Id).Select(ToResponse).ToList();
+            return await _context.Promotions
+                .Where(p => p.IsActive && p.ValidUntil >= now)
+                .Select(p => new PromotionDto
+                {
+                    Id = p.Id,
+                    PromoCode = p.PromoCode,
+                    DiscountPercentage = p.DiscountPercentage,
+                    ValidUntil = p.ValidUntil,
+                    MaxDiscountCap = p.MaxDiscountCap
+                })
+                .ToListAsync();
         }
 
-        public async Task<PromotionResponse?> GetByIdAsync(long id)
+        public async Task<ValidatePromoResponseDto> ValidatePromoAsync(ValidatePromoRequestDto dto)
         {
-            var entity = await _repository.GetByIdAsync(id);
-            return entity == null ? null : ToResponse(entity);
-        }
-
-        public async Task<PromotionResponse?> GetByCodeAsync(string code)
-        {
-            var items = await _repository.GetAllAsync();
-            var entity = items.FirstOrDefault(x => x.PromoCode.Equals(code.Trim(), StringComparison.OrdinalIgnoreCase));
-            return entity == null ? null : ToResponse(entity);
-        }
-
-        public async Task<PromotionResponse> CreateAsync(PromotionRequest request)
-        {
-            var code = request.PromoCode.Trim().ToUpperInvariant();
-            var existing = await GetByCodeAsync(code);
-            if (existing != null)
-                throw new InvalidOperationException($"Promo code '{code}' sudah digunakan.");
-
-            Validate(request);
-
-            var entity = new Promotion
+            if (string.IsNullOrWhiteSpace(dto.PromoCode))
             {
-                PromoCode = code,
-                DiscountPercentage = request.DiscountPercentage,
-                MaxDiscountCap = request.MaxDiscountCap,
-                ValidUntil = request.ValidUntil,
-                IsActive = request.IsActive
+                return new ValidatePromoResponseDto
+                {
+                    IsValid = false,
+                    Message = "Promo code cannot be empty.",
+                    DiscountAmount = 0,
+                    FinalAmount = dto.TotalAmount
+                };
+            }
+
+            var now = DateTime.UtcNow;
+            var promo = await _context.Promotions
+                .FirstOrDefaultAsync(p => p.PromoCode.ToUpper() == dto.PromoCode.Trim().ToUpper());
+
+            if (promo == null)
+            {
+                return new ValidatePromoResponseDto
+                {
+                    IsValid = false,
+                    Message = "Invalid promo code.",
+                    DiscountAmount = 0,
+                    FinalAmount = dto.TotalAmount
+                };
+            }
+
+            if (!promo.IsActive || promo.ValidUntil < now)
+            {
+                return new ValidatePromoResponseDto
+                {
+                    IsValid = false,
+                    Message = "Promo code is expired or inactive.",
+                    PromoCode = promo.PromoCode,
+                    DiscountAmount = 0,
+                    FinalAmount = dto.TotalAmount
+                };
+            }
+
+            // Hitung diskon
+            decimal rawDiscount = dto.TotalAmount * (promo.DiscountPercentage / 100m);
+            decimal discountAmount = promo.MaxDiscountCap > 0
+                ? Math.Min(rawDiscount, promo.MaxDiscountCap)
+                : rawDiscount;
+
+            decimal finalAmount = Math.Max(0, dto.TotalAmount - discountAmount);
+
+            return new ValidatePromoResponseDto
+            {
+                IsValid = true,
+                Message = "Promo code applied successfully.",
+                PromoCode = promo.PromoCode,
+                DiscountPercentage = promo.DiscountPercentage,
+                DiscountAmount = Math.Round(discountAmount, 2),
+                FinalAmount = Math.Round(finalAmount, 2)
             };
-
-            await _repository.AddAsync(entity);
-            await _repository.SaveChangesAsync();
-            return ToResponse(entity);
         }
-
-        public async Task<PromotionResponse?> UpdateAsync(long id, PromotionRequest request)
-        {
-            Validate(request);
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) return null;
-
-            var code = request.PromoCode.Trim().ToUpperInvariant();
-            var all = await _repository.GetAllAsync();
-            if (all.Any(x => x.Id != id && x.PromoCode.Equals(code, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException($"Promo code '{code}' sudah digunakan.");
-
-            entity.PromoCode = code;
-            entity.DiscountPercentage = request.DiscountPercentage;
-            entity.MaxDiscountCap = request.MaxDiscountCap;
-            entity.ValidUntil = request.ValidUntil;
-            entity.IsActive = request.IsActive;
-
-            _repository.Update(entity);
-            await _repository.SaveChangesAsync();
-            return ToResponse(entity);
-        }
-
-        public async Task<bool> DeleteAsync(long id)
-        {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null) return false;
-
-            try
-            {
-                _repository.Delete(entity);
-                await _repository.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateException)
-            {
-                throw new InvalidOperationException("Promotion tidak dapat dihapus karena sudah digunakan pada reservasi.");
-            }
-        }
-
-        private static void Validate(PromotionRequest request)
-        {
-            if (request.DiscountPercentage < 0 || request.DiscountPercentage > 100)
-                throw new ArgumentException("DiscountPercentage harus antara 0 sampai 100.");
-            if (request.MaxDiscountCap < 0)
-                throw new ArgumentException("MaxDiscountCap tidak boleh negatif.");
-            if (request.ValidUntil <= DateTime.UtcNow)
-                throw new ArgumentException("ValidUntil harus berupa tanggal di masa depan.");
-        }
-
-        private static PromotionResponse ToResponse(Promotion entity) => new()
-        {
-            Id = entity.Id,
-            PromoCode = entity.PromoCode,
-            DiscountPercentage = entity.DiscountPercentage,
-            MaxDiscountCap = entity.MaxDiscountCap,
-            ValidUntil = entity.ValidUntil,
-            IsActive = entity.IsActive
-        };
     }
 }

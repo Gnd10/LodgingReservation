@@ -118,7 +118,7 @@ namespace LodgingReservation.Migrations
                         .HasColumnName("PROMO_CODE");
 
                     b.Property<DateTime>("ValidUntil")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("VALID_UNTIL");
 
                     b.HasKey("Id");
@@ -148,11 +148,11 @@ namespace LodgingReservation.Migrations
                         .HasColumnName("BOOKING_CODE");
 
                     b.Property<DateTime>("CheckInDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("CHECK_IN_DATE");
 
                     b.Property<DateTime>("CheckOutDate")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("CHECK_OUT_DATE");
 
                     b.Property<decimal>("GrandTotal")
@@ -210,8 +210,7 @@ namespace LodgingReservation.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("ExtraServiceId")
-                        .IsRequired()
+                    b.Property<long>("ExtraServiceId")
                         .HasColumnType("bigint")
                         .HasColumnName("EXTRA_SERVICE_ID");
 
@@ -327,6 +326,10 @@ namespace LodgingReservation.Migrations
                         .HasColumnType("text")
                         .HasColumnName("DESCRIPTION");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("IMAGE_URL");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -352,6 +355,10 @@ namespace LodgingReservation.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("EMAIL");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("IS_DELETED");
+
                     b.Property<string>("Nama")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -363,6 +370,11 @@ namespace LodgingReservation.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("PASSWORD");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("PHONE_NUMBER");
 
                     b.HasKey("Id");
 

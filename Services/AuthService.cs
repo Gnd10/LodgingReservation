@@ -1,78 +1,102 @@
+﻿using LodgingReservation_BE.DTOs;
+using LodgingReservation_BE.Exceptions;
+using LodgingReservation_BE.Models;
+using LodgingReservation_BE.Security;
+using LodgingReservation_BE.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
-using LodgingReservation_BE.DTOs;
-using LodgingReservation_BE.Models;
-using LodgingReservation_BE.Repositories;
-using Microsoft.IdentityModel.Tokens;
 
 namespace LodgingReservation_BE.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IRepository<User> _userRepository;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _config;
 
-        public AuthService(
-            IRepository<User> userRepository,
-            IConfiguration configuration)
+        public AuthService(IRepository<User> userRepository, IConfiguration config)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
+            _config = config;
         }
 
-        public async Task<LoginResponse?> LoginAsync(LoginRequest request)
+        public async Task<AuthResponse?> LoginAsync(LoginRequestDto request)
         {
-            var users = await _userRepository.GetAllAsync();
+            List<User> users = await _userRepository.GetAllAsync();
+            User? user = users.FirstOrDefault(
+                u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase));
 
-            var user = users.FirstOrDefault(u =>
-                string.Equals(u.Email, request.Email.Trim(), StringComparison.OrdinalIgnoreCase));
-
-            if (user == null)
-                return null;
-
-            // Password di database harus berupa BCrypt hash.
-            if (!BCrypt.Verify(request.Password, user.Password))
-                return null;
-
-            var jwtKey = _configuration["Jwt:Key"];
-            var issuer = _configuration["Jwt:Issuer"];
-            var audience = _configuration["Jwt:Audience"];
-            var expiryMinutes = _configuration.GetValue<int>("Jwt:ExpiryMinutes", 60);
-
-            if (string.IsNullOrWhiteSpace(jwtKey))
-                throw new InvalidOperationException("Jwt:Key belum dikonfigurasi.");
-
-            var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
-
-            var claims = new List<Claim>
+            if (user == null || !PasswordHasher.Verify(request.Password, user.Password))
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim("userId", user.Id.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Nama)
+                throw new UnauthorizedAppException("Email atau password salah.");
+            }
+
+            return GenerateAuthResponse(user);
+        }
+        public async Task<AuthResponse> RegisterAsync(RegisterRequestDto request)
+        {
+            List<User> users = await _userRepository.GetAllAsync();
+
+            bool emailTaken = users.Any(
+                u => u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase));
+            if (emailTaken)
+            {
+                throw new ConflictException("Email sudah terdaftar.");
+            }
+
+            var user = new User
+            {
+                Nama = request.Nama,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                Password = PasswordHasher.Hash(request.Password)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
 
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                expires: expiresAt,
-                signingCredentials: credentials);
+            return GenerateAuthResponse(user);
+        }
 
-            return new LoginResponse
+        private AuthResponse GenerateAuthResponse(User user)
+        {
+            Claim[] claims = new[]
             {
-                UserId = user.Id,
-                Email = user.Email,
-                Nama = user.Nama,
+                new Claim("userId", user.Id.ToString()),
+                new Claim("email", user.Email)
+            };
+
+            var jwtSection = _config.GetSection("JwtSettings");
+            var secretKey = jwtSection["SecretKey"]
+                ?? throw new InvalidOperationException("Konfigurasi JwtSettings:SecretKey tidak ditemukan.");
+            var expirationHours = double.TryParse(jwtSection["ExpirationInHours"], out var h) ? h : 1;
+
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                issuer: jwtSection["Issuer"],
+                audience: jwtSection["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(expirationHours),
+                signingCredentials: creds);
+
+            return new AuthResponse
+            {
+                Status = "success",
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                ExpiresAt = expiresAt
+                User = new UserSummary
+                {
+                    Id = user.Id,
+                    Nama = user.Nama,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber
+                }
             };
         }
+
     }
 }

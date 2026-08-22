@@ -216,3 +216,13 @@ D:\LodgingReservation_BE\obj\Debug\net10.0\swae.build.ex.cache
 D:\LodgingReservation_BE\obj\Debug\net10.0\LodgingR.C529BC46.Up2Date
 D:\LodgingReservation_BE\obj\Debug\net10.0\LodgingReservation.genruntimeconfig.cache
 D:\LodgingReservation_BE\obj\Debug\net10.0\ref\LodgingReservation.dll
+D:\LodgingReservation_BE\obj\Debug\net10.0\LodgingReservation.sourcelink.json
+D:\LodgingReservation_BE\bin\Debug\net10.0\BCrypt-Net-Next.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
