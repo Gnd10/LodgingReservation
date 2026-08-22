@@ -8,6 +8,7 @@ namespace LodgingReservation_BE.Controllers
 {
         [ApiController]
         [Route("api/[controller]")]
+        [Authorize]
         public class ReservationController : ControllerBase
         {
             private readonly IReservationService _reservationService;
@@ -41,7 +42,6 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpPost]
-            [Authorize]
             public async Task<IActionResult> Create([FromBody] CreateReservation dto)
             {
             var userIdClaim = User.FindFirst("userId");
@@ -70,7 +70,6 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpPut("{id:long}")]
-            [Authorize]
              public async Task<IActionResult> Update(long id, [FromBody] UpdateReservation dto)
             {
                 try
@@ -94,7 +93,6 @@ namespace LodgingReservation_BE.Controllers
             }
 
             [HttpDelete("{id:long}")]
-            // [Authorize]
             public async Task<IActionResult> Cancel(long id)
             {
                 var success = await _reservationService.CancelAsync(id);

@@ -1,10 +1,12 @@
 using LodgingReservation_BE.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LodgingReservation_BE.Controllers
 {
     [ApiController]
-    [Route("api/extra-services")]
+    [Route("api/[controller]")]
+    [Authorize]
     public class ExtraServiceController : ControllerBase
     {
         private readonly IExtraServiceService _extraServiceService;

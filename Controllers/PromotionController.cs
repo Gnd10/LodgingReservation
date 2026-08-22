@@ -1,11 +1,13 @@
 using LodgingReservation_BE.DTOs;
 using LodgingReservation_BE.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LodgingReservation_BE.Controllers
 {
     [ApiController]
-    [Route("api/promotions")]
+    [Route("api/[controller]")]
+    [Authorize]
     public class PromotionController : ControllerBase
     {
         private readonly IPromotionService _promotionService;
@@ -16,7 +18,6 @@ namespace LodgingReservation_BE.Controllers
         }
 
         [HttpGet("active")]
-        [HttpGet("/promotions/active")]
         public async Task<IActionResult> GetActivePromotions()
         {
             var promotions = await _promotionService.GetActivePromotionsAsync();

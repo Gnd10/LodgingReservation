@@ -226,3 +226,12 @@ D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
 D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 D:\LodgingReservation_BE\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
 D:\LodgingReservation_BE\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.AspNetCore.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Extensions.Hosting.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Extensions.Logging.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Formatting.Compact.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Settings.Configuration.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Sinks.Console.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Sinks.Debug.dll
+D:\LodgingReservation_BE\bin\Debug\net10.0\Serilog.Sinks.File.dll

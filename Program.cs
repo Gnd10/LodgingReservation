@@ -5,9 +5,22 @@ using LodgingReservation_BE.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, config) =>
+{
+    config
+        .ReadFrom.Configuration(ctx.Configuration)
+        .WriteTo.Console()
+        .WriteTo.File(
+            "Logs/LodgingReservation-.txt",
+            rollingInterval: RollingInterval.Day,
+            outputTemplate:
+                "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}");
+});
 
 // Add services to the container.
 var connStr = builder.Configuration
@@ -32,6 +45,16 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -62,10 +85,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

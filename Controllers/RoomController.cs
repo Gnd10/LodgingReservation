@@ -3,12 +3,14 @@ using LodgingReservation_BE.Models;
 using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
 using LodgingReservation_BE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LodgingReservation_BE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RoomController : ControllerBase
     {
         private readonly IRoomService _roomService;
