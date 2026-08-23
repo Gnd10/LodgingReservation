@@ -1,0 +1,172 @@
+<div
+  class="min-h-screen bg-background flex items-center justify-center px-4 py-12"
+>
+  <div
+    class="max-w-md w-full bg-surface border border-border rounded-xl shadow-sm p-8"
+  >
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold text-textDark">Stay<span>Hub</span></h2>
+      <p class="text-sm text-textMuted mt-2">
+        Daftar akun baru untuk mulai memesan penginapan
+      </p>
+    </div>
+
+    <div
+      *ngIf="successMessage"
+      class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm rounded-lg"
+    >
+      {{ successMessage }}
+    </div>
+
+    <div
+      *ngIf="errorMessage"
+      class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
+      <div>
+        <label for="name" class="block text-sm font-medium text-textDark mb-1"
+          >Nama Lengkap</label
+        >
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="Masukkan nama lengkap"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-textDark bg-white"
+          [ngClass]="{
+            'border-red-500 focus:ring-red-500':
+              registerForm.get('name')?.touched &&
+              registerForm.get('name')?.invalid,
+          }"
+        />
+        <div
+          *ngIf="
+            registerForm.get('name')?.touched &&
+            registerForm.get('name')?.invalid
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          <span *ngIf="registerForm.get('name')?.errors?.['required']"
+            >Nama Lengkap wajib diisi</span
+          >
+        </div>
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-textDark mb-1"
+          >Alamat Email</label
+        >
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Masukkan email"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-textDark bg-white"
+          [ngClass]="{
+            'border-red-500 focus:ring-red-500':
+              registerForm.get('email')?.touched &&
+              registerForm.get('email')?.invalid,
+          }"
+        />
+        <div
+          *ngIf="
+            registerForm.get('email')?.touched &&
+            registerForm.get('email')?.invalid
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          <span *ngIf="registerForm.get('email')?.errors?.['required']"
+            >Email wajib diisi</span
+          >
+          <span *ngIf="registerForm.get('email')?.errors?.['email']"
+            >Format tidak valid</span
+          >
+        </div>
+      </div>
+
+      <div>
+        <label
+          for="phoneNumber"
+          class="block text-sm font-medium text-textDark mb-1"
+          >Nomor Telepon</label
+        >
+        <input
+          type="text"
+          id="phoneNumber"
+          formControlName="phoneNumber"
+          placeholder="Masukkan nomor telepon"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-textDark bg-white"
+          [ngClass]="{
+            'border-red-500 focus:ring-red-500':
+              registerForm.get('phoneNumber')?.touched &&
+              registerForm.get('phoneNumber')?.invalid,
+          }"
+        />
+        <div
+          *ngIf="
+            registerForm.get('phoneNumber')?.touched &&
+            registerForm.get('phoneNumber')?.invalid
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          <span *ngIf="registerForm.get('phoneNumber')?.errors?.['pattern']"
+            >Nomor telepon wajib diisi</span
+          >
+          <span>Nomor telepon hanya boleh berisi angka</span>
+        </div>
+      </div>
+
+      <div>
+        <label
+          for="password"
+          class="block text-sm font-medium text-textDark mb-1"
+          >Password</label
+        >
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          id="password"
+          formControlName="password"
+          placeholder="Masukkan password anda"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-textDark bg-white"
+        />
+
+        <div class="mt-2 flex items-center">
+          <input
+            type="checkbox"
+            id="showPassRegister"
+            (change)="showPassword = !showPassword"
+            class="mr-2 h-4 w-4 text-primary focus:ring-primary border-border rounded"
+          />
+          <label
+            for="showPassRegister"
+            class="text-xs text-textMuted cursor-pointer select-none"
+            >Tampilkan Password</label
+          >
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="isLoading || successMessage"
+        class="w-full bg-primary hover:bg-primaryHover disabled:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center cursor-pointer mt-6"
+      >
+        <span *ngIf="!isLoading">Daftar Akun</span>
+        <span *ngIf="isLoading" class="flex items-center">Mendaftarkan..</span>
+      </button>
+    </form>
+
+    <div class="text-center mt-6">
+      <p class="text-sm text-textMuted">
+        Sudah punya akun?
+        <a
+          routerLink="/login"
+          class="text-primary hover:text-primaryHover font-medium transition-colors"
+          >Login di sini</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

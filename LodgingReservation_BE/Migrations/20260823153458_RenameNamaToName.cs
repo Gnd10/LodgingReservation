@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LodgingReservation_BE.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class RenameNamaToName : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -69,7 +69,7 @@ namespace LodgingReservation_BE.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EMAIL = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PASSWORD = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    NAMA = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NAME = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PHONE_NUMBER = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     IS_DELETED = table.Column<bool>(type: "boolean", nullable: false)
                 },

@@ -1,26 +1,105 @@
-<main class="auth-page">
-  <section class="auth-card">
-    <div class="brand">LODGING<span>.</span></div>
-    <p class="eyebrow">RESERVATION SYSTEM</p>
-    <h1>Selamat datang kembali.</h1>
-    <p class="subtitle">Masuk untuk melanjutkan reservasi penginapan Anda.</p>
+<div
+  class="min-h-screen bg-background flex items-center justify-center px-4 py-12"
+>
+  <div
+    class="max-w-md w-full bg-surface border border-border rounded-xl shadow-sm p-8"
+  >
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold text-textDark select-none">
+        Stay<span class="text-primary">Hub</span>
+      </h2>
+      <p class="text-sm text-textMuted mt-2">
+        Selamat datang! Silakan login ke akun Anda.
+      </p>
+    </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>Email</label>
-      <input type="email" formControlName="email" placeholder="nama@email.com" autocomplete="email">
-      <small *ngIf="form.controls.email.touched && form.controls.email.invalid">Email wajib valid.</small>
+    <div
+      *ngIf="errorMessage"
+      class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"
+    >
+      {{ errorMessage }}
+    </div>
 
-      <label>Password</label>
-      <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password">
-      <small *ngIf="form.controls.password.touched && form.controls.password.invalid">Password wajib diisi.</small>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div>
+        <label for="email" class="block text-sm font-medium text-textDark mb-1"
+          >Alamat Email</label
+        >
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Masukkan email anda"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-textDark bg-white"
+          [ngClass]="{
+            'border-red-500 focus:ring-red-500':
+              loginForm.get('email')?.touched &&
+              loginForm.get('email')?.invalid,
+          }"
+        />
+        <div
+          *ngIf="
+            loginForm.get('email')?.touched && loginForm.get('email')?.invalid
+          "
+          class="text-red-500 text-xs mt-1"
+        >
+          <span *ngIf="loginForm.get('email')?.errors?.['required']"
+            >Email wajib diisi</span
+          >
+          <span *ngIf="loginForm.get('email')?.errors?.['email']"
+            >Format email tidak valid</span
+          >
+        </div>
+      </div>
 
-      <div class="error" *ngIf="error">{{ error }}</div>
+      <div>
+        <label
+          for="password"
+          class="block text-sm font-medium text-textDark mb-1"
+          >Password</label
+        >
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          id="password"
+          formControlName="password"
+          placeholder="Masukkan password anda"
+          class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-textDark bg-white"
+        />
 
-      <button type="submit" [disabled]="loading">
-        {{ loading ? 'Memproses...' : 'Masuk' }}
+        <div class="mt-2 flex items-center">
+          <input
+            type="checkbox"
+            id="showPassLogin"
+            (change)="showPassword = !showPassword"
+            class="mr-2 h-4 w-4 text-primary focus:ring-primary border-border rounded"
+          />
+          <label
+            for="showPassLogin"
+            class="text-xs text-textMuted cursor-pointer select-none"
+            >Tampilkan Password</label
+          >
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="w-full bg-primary hover:bg-primaryHover disabled:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors flex justify-center items-center cursor-pointer"
+      >
+        <span *ngIf="!isLoading">Login</span>
+        <span *ngIf="isLoading" class="flex items-center">Memproses...</span>
       </button>
     </form>
 
-    <p class="hint">Gunakan akun yang sudah terdaftar pada backend.</p>
-  </section>
-</main>
+    <div class="text-center mt-6">
+      <p class="text-sm text-textMuted">
+        Belum punya akun?
+        <a
+          routerLink="/register"
+          class="text-primary hover:text-primaryHover font-medium transition-colors"
+          >Daftar sekarang</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

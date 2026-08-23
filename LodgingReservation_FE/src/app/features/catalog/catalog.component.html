@@ -1,0 +1,143 @@
+<div class="min-h-screen bg-background">
+  <!-- Container Utama -->
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Bagian Filter Search -->
+    <section
+      class="bg-surface border border-border rounded-xl shadow-sm p-6 mb-8"
+    >
+      <h2 class="text-lg font-semibold text-textDark mb-4">
+        Cari Penginapan Terbaik
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Input Check-In -->
+        <div>
+          <label class="block text-xs font-medium text-textMuted mb-1"
+            >Tanggal Check-In</label
+          >
+          <input
+            type="date"
+            [(ngModel)]="checkInDate"
+            class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-textDark bg-white"
+          />
+        </div>
+        <!-- Input Check-Out -->
+        <div>
+          <label class="block text-xs font-medium text-textMuted mb-1"
+            >Tanggal Check-Out</label
+          >
+          <input
+            type="date"
+            [(ngModel)]="checkOutDate"
+            class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-textDark bg-white"
+          />
+        </div>
+        <!-- Jumlah Tamu -->
+        <div>
+          <label class="block text-xs font-medium text-textMuted mb-1"
+            >Jumlah Tamu (Kapasitas)</label
+          >
+          <input
+            type="number"
+            min="1"
+            [(ngModel)]="guestCount"
+            (input)="applyFilter()"
+            class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-textDark bg-white"
+          />
+        </div>
+        <!-- Tombol Aksi -->
+        <div class="flex items-end space-x-2">
+          <button
+            (click)="applyFilter()"
+            class="flex-1 bg-primary hover:bg-primaryHover text-white text-sm font-medium py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            Cari Kamar
+          </button>
+          <button
+            (click)="resetFilter()"
+            class="px-3 bg-slate-100 hover:bg-slate-200 text-textDark text-sm font-medium py-2 rounded-lg transition-colors cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- Error/Loading Indicator -->
+    <div *ngIf="isLoading" class="text-center py-12">
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"
+      ></div>
+      <p class="text-sm text-textMuted mt-2">Memuat daftar kamar...</p>
+    </div>
+    <div
+      *ngIf="errorMessage"
+      class="p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg mb-8 text-center"
+    >
+      {{ errorMessage }}
+    </div>
+    <!-- Catalog List -->
+    <div
+      *ngIf="!isLoading && !errorMessage"
+      class="grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
+      <!-- Loop Card Kamar -->
+      <div
+        *ngFor="let room of filteredRoomTypes"
+        class="bg-surface border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+      >
+        <!-- Gambar Kamar (Mockup jika URL kosong) -->
+        <div class="h-48 bg-slate-200 relative">
+          <img
+            [src]="
+              room.imageUrl ||
+              'https://images.unsplash.com/photo-1611891487122-207579d67d98?auto=format&fit=crop&w=600&q=80'
+            "
+            [alt]="room.name"
+            class="w-full h-full object-cover"
+          />
+          <div
+            class="absolute top-2 right-2 bg-primary text-white text-xs font-semibold px-2 py-1 rounded"
+          >
+            Kapasitas: {{ room.capacity }} Orang
+          </div>
+        </div>
+        <!-- Detail Konten -->
+        <div class="p-6">
+          <h3 class="text-lg font-bold text-textDark mb-2">{{ room.name }}</h3>
+          <p class="text-sm text-textMuted line-clamp-3 mb-4">
+            {{
+              room.description ||
+                "Tidak ada deskripsi tersedia untuk tipe kamar ini."
+            }}
+          </p>
+
+          <div
+            class="flex justify-between items-center pt-4 border-t border-border"
+          >
+            <div>
+              <span class="text-xs text-textMuted block">Mulai dari</span>
+              <span class="text-lg font-bold text-primary"
+                >Rp {{ room.basePrice | number: "1.0-0" }}</span
+              ><span class="text-xs text-textMuted">/malam</span>
+            </div>
+            <button
+              (click)="viewDetails(room.id)"
+              class="bg-primary hover:bg-primaryHover text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              Lihat Detail
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- State Jika Tidak Ada Kamar Cocok -->
+      <div
+        *ngIf="filteredRoomTypes.length === 0"
+        class="col-span-full text-center py-12"
+      >
+        <p class="text-lg font-semibold text-textDark">Kamar tidak ditemukan</p>
+        <p class="text-sm text-textMuted">
+          Coba sesuaikan filter pencarian atau kurangi jumlah tamu.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>

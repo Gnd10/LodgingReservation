@@ -29,7 +29,7 @@ namespace LodgingReservation_BE.Services
 
             var user = new User
             {
-                Nama = dto.Nama,
+                Name = dto.Name,
                 Email = dto.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 PhoneNumber = dto.PhoneNumber,
@@ -40,7 +40,7 @@ namespace LodgingReservation_BE.Services
             await _context.SaveChangesAsync();
 
             var token = GenerateJwtToken(user);
-            return new AuthResponseDto(token, user.Nama, user.Email);
+            return new AuthResponseDto(token, user.Name, user.Email);
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto)
@@ -59,7 +59,7 @@ namespace LodgingReservation_BE.Services
             }
 
             var token = GenerateJwtToken(user);
-            return new AuthResponseDto(token, user.Nama, user.Email);
+            return new AuthResponseDto(token, user.Name, user.Email);
         }
 
         private string GenerateJwtToken(User user)
@@ -71,7 +71,7 @@ namespace LodgingReservation_BE.Services
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Nama),
+                new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Email, user.Email)
             };
 

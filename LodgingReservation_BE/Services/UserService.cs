@@ -21,7 +21,7 @@ namespace LodgingReservation_BE.Services
             return new UserProfileDto
             {
                 Id = user.Id,
-                Nama = user.Nama,
+                Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
             };
@@ -32,7 +32,7 @@ namespace LodgingReservation_BE.Services
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
             if (user == null) return null;
 
-            user.Nama = dto.Nama;
+            user.Name = dto.Name;
             user.PhoneNumber = dto.PhoneNumber;
 
             await _context.SaveChangesAsync();
@@ -40,7 +40,7 @@ namespace LodgingReservation_BE.Services
             return new UserProfileDto
             {
                 Id = user.Id,
-                Nama = user.Nama,
+                Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
             };

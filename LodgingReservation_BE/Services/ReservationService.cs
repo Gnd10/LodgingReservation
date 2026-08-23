@@ -203,7 +203,7 @@ namespace LodgingReservation_BE.Services
                 Id = reservation.Id,
                 BookingCode = reservation.BookingCode,
                 UserId = reservation.UserId,
-                UserName = reservation.User?.Nama ?? string.Empty,
+                UserName = reservation.User?.Name ?? string.Empty,
                 CheckInDate = reservation.CheckInDate,
                 CheckOutDate = reservation.CheckOutDate,
                 TotalNights = reservation.TotalNights,

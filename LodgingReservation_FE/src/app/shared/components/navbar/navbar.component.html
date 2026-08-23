@@ -1,3 +1,31 @@
+@if (showNavbar()) {
+  <nav class="navbar">
+    <div class="nav-brand">
+      <a routerLink="/catalog">Stay<span>Hub</span></a>
+    </div>
+
+    <div class="nav-links">
+      <a routerLink="/catalog" routerLinkActive="active">Katalog Kamar</a>
+      <a *ngIf="isLoggedIn()" routerLink="/bookings" routerLinkActive="active"
+        >Riwayat Booking</a
+      >
+      <a *ngIf="isLoggedIn()" routerLink="/profile" routerLinkActive="active"
+        >Profil Saya</a
+      >
+
+      <div class="auth-section">
+        <ng-container *ngIf="!isLoggedIn()">
+          <a routerLink="/login" class="btn-login">Login</a>
+        </ng-container>
+
+        <ng-container *ngIf="isLoggedIn()">
+          <span class="user-greeting">Halo, {{ getUserName() }}</span>
+          <button (click)="logout()" class="btn-logout">Logout</button>
+        </ng-container>
+      </div>
+    </div>
+  </nav>
+}
 <nav class="nav" *ngIf="auth.isLoggedIn()">
   <a class="brand" routerLink="/rooms">LODGING<span>.</span></a>
   <div class="links">

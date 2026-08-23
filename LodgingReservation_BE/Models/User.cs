@@ -20,9 +20,9 @@ namespace LodgingReservation_BE.Models
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        [Column("NAMA")]
+        [Column("NAME")]
         [MaxLength(100)]
-        public string Nama { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [Column("PHONE_NUMBER")]
         [StringLength(200)]

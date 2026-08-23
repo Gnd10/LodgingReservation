@@ -363,11 +363,11 @@ namespace LodgingReservation_BE.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IS_DELETED");
 
-                    b.Property<string>("Nama")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("NAMA");
+                        .HasColumnName("NAME");
 
                     b.Property<string>("Password")
                         .IsRequired()

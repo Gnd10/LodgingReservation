@@ -5,6 +5,7 @@ export interface RoomType {
   capacity: number;
   description: string;
   imageUrl?: string;
+  imageUrl?: string;
   availableCount?: number;
   rooms?: Room[];
 }

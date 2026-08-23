@@ -1,0 +1,187 @@
+<div class="min-h-screen bg-background">
+  <!-- Container Utama -->
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <!-- Title Page -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-textDark">Riwayat Booking</h2>
+      <p class="text-sm text-textMuted mt-1">
+        Daftar semua reservasi penginapan yang telah Anda lakukan.
+      </p>
+    </div>
+
+    <!-- Alerts -->
+    <div
+      *ngIf="successMessage"
+      class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm rounded-lg"
+    >
+      {{ successMessage }}
+    </div>
+    <div
+      *ngIf="errorMessage"
+      class="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="text-center py-12">
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"
+      ></div>
+      <p class="text-sm text-textMuted mt-2">Memuat riwayat transaksi...</p>
+    </div>
+
+    <!-- Empty State (Jika tidak ada booking) -->
+    <div
+      *ngIf="!isLoading && bookings.length === 0"
+      class="bg-surface border border-border rounded-xl p-12 text-center shadow-sm"
+    >
+      <svg
+        class="mx-auto h-12 w-12 text-textMuted mb-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+        />
+      </svg>
+      <h3 class="text-lg font-semibold text-textDark">
+        Belum ada riwayat booking
+      </h3>
+      <p class="text-sm text-textMuted mt-1 mb-6">
+        Temukan penginapan impian Anda di katalog kami.
+      </p>
+      <a
+        routerLink="/catalog"
+        class="inline-block bg-primary hover:bg-primaryHover text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+      >
+        Cari Kamar Sekarang
+      </a>
+    </div>
+
+    <!-- Booking List -->
+    <div *ngIf="!isLoading && bookings.length > 0" class="space-y-6">
+      <!-- Card Booking -->
+      <div
+        *ngFor="let booking of bookings"
+        class="bg-surface border border-border rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow"
+      >
+        <!-- Info Status & Tipe Kamar (Kiri) -->
+        <div class="p-6 md:w-3/4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-3 mb-3">
+              <!-- Booking Code -->
+              <span
+                class="text-xs font-mono font-bold bg-slate-100 text-textDark px-2.5 py-1 rounded"
+              >
+                CODE: {{ booking.bookingCode }}
+              </span>
+
+              <!-- Status Badge -->
+              <span
+                class="text-xs font-semibold px-2.5 py-0.5 rounded"
+                [ngClass]="{
+                  'bg-emerald-50 text-emerald-700 border border-emerald-100':
+                    booking.status === 'Confirmed' ||
+                    booking.status === 'Completed',
+                  'bg-blue-50 text-blue-700 border border-blue-100':
+                    booking.status === 'CheckedIn',
+                  'bg-yellow-50 text-yellow-700 border border-yellow-100':
+                    booking.status === 'Pending',
+                  'bg-red-50 text-red-700 border border-red-100':
+                    booking.status === 'Cancelled',
+                }"
+              >
+                {{ booking.status }}
+              </span>
+            </div>
+
+            <!-- Tipe & Nomor Kamar -->
+            <h3 class="text-lg font-bold text-textDark">
+              {{ booking.roomTypeName }}
+            </h3>
+            <p class="text-sm text-textMuted mt-1">
+              Nomor Kamar:
+              <span class="font-semibold text-textDark">{{
+                booking.roomNumber || "Menunggu Alokasi"
+              }}</span>
+            </p>
+
+            <!-- Tanggal Inap -->
+            <div class="grid grid-cols-2 gap-4 mt-4 max-w-md">
+              <div>
+                <span class="text-xs text-textMuted block">Check-in</span>
+                <span class="text-sm font-medium text-textDark">{{
+                  booking.checkInDate | date: "mediumDate"
+                }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-textMuted block">Check-out</span>
+                <span class="text-sm font-medium text-textDark">{{
+                  booking.checkOutDate | date: "mediumDate"
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Malam -->
+          <div
+            class="mt-4 pt-4 border-t border-slate-100 text-xs text-textMuted"
+          >
+            Durasi Menginap:
+            <span class="font-semibold text-textDark"
+              >{{ booking.totalNights }} Malam</span
+            >
+          </div>
+        </div>
+
+        <!-- Rincian Biaya & Tombol Batal (Kanan) -->
+        <div
+          class="p-6 md:w-1/4 bg-slate-50/50 border-t md:border-t-0 md:border-l border-border flex flex-col justify-between items-stretch"
+        >
+          <!-- Rincian Biaya -->
+          <div class="mb-4">
+            <span class="text-xs text-textMuted block">Total Pembayaran</span>
+            <span class="text-xl font-bold text-primary block"
+              >Rp {{ booking.grandTotal | number: "1.0-0" }}</span
+            >
+            <span
+              class="text-[10px] text-emerald-600 block mt-1"
+              *ngIf="booking.promoDiscount > 0"
+            >
+              Hemat Rp {{ booking.promoDiscount | number: "1.0-0" }} (Promo)
+            </span>
+          </div>
+
+          <!-- Tombol Aksi -->
+          <div class="space-y-2">
+            <!-- Tombol Detail -->
+            <a
+              [routerLink]="['/bookings', booking.id]"
+              class="w-full text-center block bg-white hover:bg-slate-50 border border-border text-textDark text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
+            >
+              Lihat Invoice
+            </a>
+
+            <!-- Tombol Batalkan (Hanya aktif jika status bukan Cancelled/Completed/CheckedIn) -->
+            <button
+              *ngIf="
+                booking.status !== 'Cancelled' &&
+                booking.status !== 'Completed' &&
+                booking.status !== 'CheckedIn'
+              "
+              (click)="onCancelBooking(booking.id)"
+              class="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center"
+            >
+              Batalkan Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

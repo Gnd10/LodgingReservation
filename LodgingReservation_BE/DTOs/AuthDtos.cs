@@ -5,7 +5,7 @@ namespace LodgingReservation_BE.DTOs
     public record RegisterRequestDto(
         [Required(ErrorMessage = "Full name is required")]
         [StringLength(100)]
-        string Nama,
+        string Name,
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
@@ -30,7 +30,7 @@ namespace LodgingReservation_BE.DTOs
 
     public record AuthResponseDto(
         string Token,
-        string Nama,
+        string Name,
         string Email
     );
 }
