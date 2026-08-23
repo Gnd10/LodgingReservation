@@ -1,0 +1,31 @@
+* { box-sizing:border-box; }
+.page { max-width:1180px; margin:auto; padding:34px 24px 70px; }
+.back { color:#6f6256; text-decoration:none; font-weight:700; font-size:14px; }
+.hero { margin-top:24px; display:grid; grid-template-columns: 1fr 1fr; background:#fff; border:1px solid #e7e0d5; border-radius:24px; overflow:hidden; }
+.image { min-height:520px; background-size:cover; background-position:center; }
+.content { padding:48px; }
+.eyebrow { font-size:11px; letter-spacing:.18em; font-weight:900; color:#a07857; }
+h1 { font-size:44px; margin:8px 0 16px; color:#25211d; }
+.description { color:#746d65; line-height:1.75; }
+.facts { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:30px 0; }
+.facts div { padding:16px; background:#f7f3ed; border-radius:12px; }
+.facts span { display:block; font-size:11px; color:#93877c; text-transform:uppercase; letter-spacing:.08em; }
+.facts strong { display:block; margin-top:6px; }
+em { font-style:normal; font-size:12px; font-weight:500; }
+.room-picker h3 { font-size:15px; }
+.room-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.room-grid button { background:#fff; border:1px solid #d9d1c6; padding:11px 14px; border-radius:10px; cursor:pointer; }
+.room-grid button.selected { background:#27231f; color:#fff; border-color:#27231f; }
+.room-grid button:disabled { opacity:.4; cursor:not-allowed; }
+.room-grid small { display:block; margin-top:2px; }
+.primary { width:100%; margin-top:26px; padding:15px; border:0; border-radius:12px; background:#27231f; color:white; font-weight:800; cursor:pointer; }
+.primary:disabled { opacity:.4; cursor:not-allowed; }
+.notice { padding:14px; border-radius:12px; background:#fff7e7; color:#7a5a2c; font-size:12px; line-height:1.5; }
+.extras { margin-top:54px; }
+h2 { font-size:30px; margin:0 0 20px; }
+.extra-list { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.extra-list article { background:#fff; border:1px solid #e7e0d5; border-radius:16px; padding:18px; display:flex; gap:12px; }
+.icon { width:30px;height:30px;border-radius:50%;background:#f1e7dc;display:grid;place-items:center;font-weight:900; }
+.extra-list p { color:#81776d;font-size:12px;margin:5px 0 0; }
+.state { min-height:60vh; display:grid; place-items:center; color:#80776e; }
+@media(max-width:800px){ .hero{grid-template-columns:1fr}.image{min-height:300px}.content{padding:28px}.extra-list{grid-template-columns:1fr 1fr}h1{font-size:36px}}

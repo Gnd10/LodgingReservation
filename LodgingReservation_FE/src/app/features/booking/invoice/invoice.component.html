@@ -1,0 +1,43 @@
+<div class="page" *ngIf="!loading && reservation; else state">
+  <div class="topbar">
+    <a routerLink="/rooms">← Kembali ke kamar</a>
+    <button (click)="print()">Print invoice</button>
+  </div>
+
+  <article class="invoice">
+    <header>
+      <div><p class="eyebrow">LODGING.</p><h1>Invoice</h1></div>
+      <div class="status">{{ reservation.status }}</div>
+    </header>
+
+    <div class="booking-code">
+      <span>BOOKING CODE</span>
+      <strong>{{ reservation.bookingCode }}</strong>
+    </div>
+
+    <div class="details">
+      <div><span>Guest</span><strong>{{ reservation.userName }}</strong></div>
+      <div><span>Room</span><strong>{{ reservation.roomTypeName }} · #{{ reservation.roomNumber }}</strong></div>
+      <div><span>Check-in</span><strong>{{ reservation.checkInDate | date:'dd MMM yyyy, HH:mm' }}</strong></div>
+      <div><span>Check-out</span><strong>{{ reservation.checkOutDate | date:'dd MMM yyyy, HH:mm' }}</strong></div>
+    </div>
+
+    <section class="charges">
+      <h2>Rincian pembayaran</h2>
+      <div><span>Kamar · {{ reservation.totalNights }} malam</span><strong>{{ reservation.roomSubtotal | rupiah }}</strong></div>
+      <div><span>Layanan ekstra</span><strong>{{ reservation.addOnsTotal | rupiah }}</strong></div>
+      <div class="discount"><span>Diskon promo</span><strong>- {{ reservation.promoDiscount | rupiah }}</strong></div>
+      <div class="grand"><span>Total pembayaran</span><strong>{{ reservation.grandTotal | rupiah }}</strong></div>
+    </section>
+
+    <footer>
+      <p>Terima kasih telah memilih Lodging. Simpan booking code untuk kebutuhan check-in.</p>
+      <small>Invoice dibuat otomatis oleh sistem reservasi.</small>
+    </footer>
+  </article>
+</div>
+
+<ng-template #state>
+  <div class="state" *ngIf="loading">Memuat invoice...</div>
+  <div class="state error" *ngIf="!loading && error">{{ error }}</div>
+</ng-template>

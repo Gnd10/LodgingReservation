@@ -1,38 +1,48 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse } from '../../shared/models/auth.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/auth`;
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
+  private readonly tokenKey = 'lodging_token';
+  private readonly nameKey = 'lodging_user_name';
+  private readonly emailKey = 'lodging_user_email';
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap((res) => this.saveSession(res))
+      tap(response => this.saveSession(response))
     );
   }
 
-  private saveSession(res: LoginResponse): void {
-    localStorage.setItem('token', res.token);
-    localStorage.setItem('user_name', res.fullName);
-    localStorage.setItem('user_id', res.userId.toString());
+  saveSession(response: LoginResponse): void {
+    localStorage.setItem(this.tokenKey, response.token);
+    localStorage.setItem(this.nameKey, response.nama);
+    localStorage.setItem(this.emailKey, response.email);
   }
 
-  logout(): void {
-    localStorage.clear();
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!this.getToken();
   }
 
   getUserName(): string | null {
-    return localStorage.getItem('user_name');
+    return localStorage.getItem(this.nameKey);
+  }
+
+  getUserEmail(): string | null {
+    return localStorage.getItem(this.emailKey);
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.nameKey);
+    localStorage.removeItem(this.emailKey);
   }
 }

@@ -1,0 +1,16 @@
+<div class="page">
+  <section class="intro">
+    <div><p class="eyebrow">STAY YOUR WAY</p><h1>Pilih kamar yang pas.</h1><p>Temukan tipe kamar, cek detailnya, lalu lanjutkan ke booking.</p></div>
+  </section>
+  <div class="grid" *ngIf="!loading; else loadingTpl">
+    <article class="card" *ngFor="let room of rooms">
+      <div class="photo" [style.background-image]="'url(' + (room.imageUrl || 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=800&auto=format&fit=crop') + ')'"></div>
+      <div class="body">
+        <div class="top"><h2>{{ room.name }}</h2><span>{{ room.capacity }} pax</span></div>
+        <p>{{ room.description }}</p>
+        <div class="bottom"><strong>{{ room.basePrice | rupiah }} <small>/ malam</small></strong><a [routerLink]="['/rooms', room.id]">Lihat detail →</a></div>
+      </div>
+    </article>
+  </div>
+</div>
+<ng-template #loadingTpl><div class="state">Memuat kamar...</div></ng-template>

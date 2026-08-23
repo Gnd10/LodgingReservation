@@ -1,0 +1,53 @@
+<div class="page" *ngIf="!loading; else loadingTpl">
+  <a routerLink="/rooms" class="back">← Kembali ke pilihan kamar</a>
+
+  <div class="hero" *ngIf="room">
+    <div class="image" [style.background-image]="'url(' + (room.imageUrl || 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=1000&auto=format&fit=crop') + ')'"></div>
+    <div class="content">
+      <p class="eyebrow">ROOM DETAIL</p>
+      <h1>{{ room.name }}</h1>
+      <p class="description">{{ room.description }}</p>
+
+      <div class="facts">
+        <div><span>Kapasitas</span><strong>{{ room.capacity }} tamu</strong></div>
+        <div><span>Harga mulai</span><strong>{{ room.basePrice | rupiah }} <em>/ malam</em></strong></div>
+      </div>
+
+      <div class="room-picker" *ngIf="room.rooms?.length">
+        <h3>Pilih nomor kamar</h3>
+        <div class="room-grid">
+          <button *ngFor="let r of room.rooms"
+                  [class.selected]="selectedRoomId === r.id"
+                  [disabled]="!isAvailable(r.status)"
+                  (click)="selectedRoomId = r.id">
+            <b>{{ r.roomNumber }}</b>
+            <small>{{ r.status }}</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="notice" *ngIf="!room.rooms?.length">
+        Nomor kamar belum dikirim oleh endpoint detail backend. Jika backend Anda masih menggunakan
+        response lama, tambahkan daftar <code>rooms</code> pada endpoint room type agar checkout dapat
+        mengirim <code>roomIds</code> yang valid.
+      </div>
+
+      <button class="primary" (click)="checkout()">Lanjut ke checkout →</button>
+    </div>
+  </div>
+
+  <section class="extras" *ngIf="extras.length">
+    <div>
+      <p class="eyebrow">OPTIONAL</p>
+      <h2>Layanan ekstra</h2>
+    </div>
+    <div class="extra-list">
+      <article *ngFor="let extra of extras">
+        <span class="icon">+</span>
+        <div><strong>{{ extra.name }}</strong><p>{{ extra.price | rupiah }} / {{ extra.type || extra.unitType || 'unit' }}</p></div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingTpl><div class="state">Memuat detail kamar...</div></ng-template>

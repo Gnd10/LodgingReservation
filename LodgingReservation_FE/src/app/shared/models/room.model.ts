@@ -4,12 +4,15 @@ export interface RoomType {
   basePrice: number;
   capacity: number;
   description: string;
+  imageUrl?: string;
+  availableCount?: number;
+  rooms?: Room[];
 }
 
 export interface Room {
   id: number;
-  roomTypeId: number;
   roomNumber: string;
-  status: 'available' | 'occupied' | 'maintenance';
+  status: string | number;
+  roomTypeId?: number;
   roomType?: RoomType;
 }

@@ -1,28 +1,32 @@
-import { ExtraService } from "./extra-service.model";
-
 export interface ReservationAddOn {
   extraServiceId: number;
   quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  extraService?: ExtraService;
+  unitPrice?: number;
+  subtotal?: number;
 }
 
-export interface Reservation {
-  id?: number;
-  bookingCode?: string;
-  userId: number;
-  promotionId?: number | null;
+export interface ReservationRequest {
+  promotionId: number | null;
+  roomIds: number[];
   checkInDate: string;
   checkOutDate: string;
-  actualCheckoutTime?: string | null;
-  status?: string;
+  lateCheckoutFee: number;
+  addOns: ReservationAddOn[];
+}
+
+export interface ReservationResponse {
+  id: number;
+  userId: number;
+  bookingCode: string;
+  status: string;
+  checkInDate: string;
+  checkOutDate: string;
   totalNights: number;
   roomSubtotal: number;
-  lateCheckoutFee: number;
   addOnsTotal: number;
   promoDiscount: number;
   grandTotal: number;
-  roomIds: number[];
-  addOns: ReservationAddOn[];
+  userName: string;
+  roomNumber: string;
+  roomTypeName: string;
 }

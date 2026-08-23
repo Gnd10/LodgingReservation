@@ -1,78 +1,26 @@
-<div class="login-container">
-  <div class="login-card">
-    <h2>Masuk ke StayHub</h2>
-    <p class="subtitle">
-      Kelola reservasi dan nikmati kemudahan booking lodging Anda
-    </p>
+<main class="auth-page">
+  <section class="auth-card">
+    <div class="brand">LODGING<span>.</span></div>
+    <p class="eyebrow">RESERVATION SYSTEM</p>
+    <h1>Selamat datang kembali.</h1>
+    <p class="subtitle">Masuk untuk melanjutkan reservasi penginapan Anda.</p>
 
-    <div *ngIf="errorMessage" class="alert-error">
-      {{ errorMessage }}
-    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Email</label>
+      <input type="email" formControlName="email" placeholder="nama@email.com" autocomplete="email">
+      <small *ngIf="form.controls.email.touched && form.controls.email.invalid">Email wajib valid.</small>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="user@email.com"
-          [class.invalid]="
-            loginForm.get('email')?.invalid && loginForm.get('email')?.touched
-          "
-        />
-        <small
-          *ngIf="
-            loginForm.get('email')?.invalid && loginForm.get('email')?.touched
-          "
-          class="error-text"
-        >
-          <span *ngIf="loginForm.get('email')?.errors?.['required']"
-            >Email wajib diisi.</span
-          >
-          <span *ngIf="loginForm.get('email')?.errors?.['email']"
-            >Format email tidak valid.</span
-          >
-        </small>
-      </div>
+      <label>Password</label>
+      <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password">
+      <small *ngIf="form.controls.password.touched && form.controls.password.invalid">Password wajib diisi.</small>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="">
-          <input
-            id="password"
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Minimal 6 karakter"
-            [class.invalid]="
-              loginForm.get('password')?.invalid &&
-              loginForm.get('password')?.touched
-            "
-          />
-        </div>
-        <small
-          *ngIf="
-            loginForm.get('password')?.invalid &&
-            loginForm.get('password')?.touched
-          "
-          class="error-text"
-        >
-          <span *ngIf="loginForm.get('password')?.errors?.['required']"
-            >Password wajib diisi.</span
-          >
-          <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
-            >Password minimal 6 karakter.</span
-          >
-          <span *ngIf="loginForm.get('password')?.errors?.['passwordStrength']"
-            >Password harus mengandung huruf besar, huruf kecil, dan angka.</span
-          >
-        </small>
-      </div>
+      <div class="error" *ngIf="error">{{ error }}</div>
 
-      <button type="submit" class="btn-submit" [disabled]="isLoading">
-        <span *ngIf="isLoading">Memproses...</span>
-        <span *ngIf="!isLoading">Login</span>
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Memproses...' : 'Masuk' }}
       </button>
     </form>
-  </div>
-</div>
+
+    <p class="hint">Gunakan akun yang sudah terdaftar pada backend.</p>
+  </section>
+</main>
