@@ -1,7 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -17,11 +15,11 @@ export class NavbarComponent {
   private router = inject(Router);
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return this.auth.isLoggedIn();
   }
 
   getUserName(): string | null {
-    return localStorage.getItem('user_name');
+    return this.auth.getUserName();
   }
 
   logout(): void {
@@ -34,4 +32,3 @@ export class NavbarComponent {
     return !url.includes('/login') && !url.includes('/register');
   }
 }
-

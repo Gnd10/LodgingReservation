@@ -1,74 +1,200 @@
 <div class="page" *ngIf="!loading; else loadingTpl">
   <div class="heading">
-    <div><p class="eyebrow">CHECKOUT</p><h1>Konfirmasi booking.</h1><p>Semua kalkulasi harga diperbarui langsung saat form berubah.</p></div>
+    <div>
+      <p class="eyebrow">CHECKOUT</p>
+      <h1>Konfirmasi booking.</h1>
+      <p>Semua kalkulasi harga diperbarui langsung saat form berubah.</p>
+    </div>
   </div>
 
   <div class="layout" *ngIf="room">
     <form [formGroup]="form" class="form-card" (ngSubmit)="submit()">
+      <!-- Bagian 1: Kamar & Kapasitas Tamu -->
       <section>
-        <h2>1. Kamar & jadwal</h2>
-        <div class="manual-room" *ngIf="!room.rooms?.length">
-          <label>Room ID <input type="number" min="1" formControlName="roomId" placeholder="ID kamar dari database" (input)="syncRoomId()"></label>
-          <small>Backend saat ini belum mengirim daftar room pada detail room type. Isi ID kamar yang tersedia dari database.</small>
-        </div>
-        <div class="selected-room" *ngIf="room.rooms?.length">
-          <span>Room terpilih</span><strong>#{{ roomId }}</strong>
+        <h2>1. Kamar & kapasitas</h2>
+        <div class="row">
+          <div>
+            <label for="guestCount">Jumlah Tamu</label>
+            <input
+              type="number"
+              id="guestCount"
+              formControlName="guestCount"
+              min="1"
+              [max]="room.capacity"
+            />
+            <small class="text-textMuted"
+              >Kapasitas maksimal tipe kamar ini:
+              {{ room.capacity }} orang.</small
+            >
+            <div
+              *ngIf="
+                form.get('guestCount')?.touched &&
+                form.get('guestCount')?.invalid
+              "
+              class="text-red-500 text-xs mt-1"
+            >
+              <span *ngIf="form.get('guestCount')?.hasError('required')"
+                >Jumlah tamu wajib diisi.</span
+              >
+              <span *ngIf="form.get('guestCount')?.hasError('min')"
+                >Minimal 1 tamu.</span
+              >
+              <span *ngIf="form.get('guestCount')?.hasError('max')"
+                >Melebihi kapasitas kamar (maksimal {{ room.capacity }}).</span
+              >
+            </div>
+          </div>
+          <div>
+            <label>Alokasi Kamar</label>
+            <div
+              class="status-kamar text-emerald-600 font-semibold mt-2"
+              *ngIf="roomId"
+            >
+              ✓ Kamar dialokasikan secara otomatis (#{{ roomId }})
+            </div>
+            <div
+              class="status-kamar text-red-600 font-semibold mt-2"
+              *ngIf="!roomId"
+            >
+              ✗ Kamar kosong tidak tersedia
+            </div>
+          </div>
         </div>
       </section>
 
+      <!-- Bagian 2: Jadwal -->
       <section>
         <h2>2. Jadwal menginap</h2>
         <div class="row">
-          <div><label>Check-in</label><input type="date" formControlName="checkIn"><small *ngIf="form.get('checkIn')?.touched && form.get('checkIn')?.hasError('pastDate')">Tanggal tidak boleh lewat.</small></div>
-          <div><label>Check-out</label><input type="date" formControlName="checkOut"></div>
-          <div><label>Jam check-out</label><input type="time" formControlName="checkOutTime"></div>
+          <div>
+            <label>Check-in</label
+            ><input type="date" formControlName="checkIn" /><small
+              *ngIf="
+                form.get('checkIn')?.touched &&
+                form.get('checkIn')?.hasError('pastDate')
+              "
+              >Tanggal tidak boleh lewat.</small
+            >
+          </div>
+          <div>
+            <label>Check-out</label
+            ><input type="date" formControlName="checkOut" />
+          </div>
         </div>
-        <div class="form-error" *ngIf="form.hasError('invalidDateRange') && (form.get('checkOut')?.touched || form.get('checkIn')?.touched)">
+        <div
+          class="form-error"
+          *ngIf="
+            form.hasError('invalidDateRange') &&
+            (form.get('checkOut')?.touched || form.get('checkIn')?.touched)
+          "
+        >
           Check-out harus setelah check-in.
         </div>
       </section>
 
+      <!-- Bagian 3: Layanan Ekstra -->
       <section>
         <h2>3. Layanan ekstra</h2>
         <div class="addon-list" formArrayName="addOns">
           <label class="addon" *ngFor="let extra of extras; let i = index">
-            <div><strong>{{ extra.name }}</strong><small>{{ extra.price | rupiah }} / {{ extra.type || extra.unitType || 'unit' }}</small></div>
-            <input type="number" min="0" [formControlName]="i">
+            <div>
+              <strong>{{ extra.name }}</strong>
+              <small
+                >{{ extra.price | rupiah }} /
+                {{ extra.type || extra.unitType || "unit" }}</small
+              >
+            </div>
+
+            <!-- Render Input Angka khusus untuk Kasur Tambahan (max 2) -->
+            <input
+              *ngIf="isNumberAddon(extra)"
+              type="number"
+              min="0"
+              max="2"
+              [formControlName]="i"
+            />
+
+            <!-- Render Checkbox untuk layanan lainnya -->
+            <input
+              *ngIf="!isNumberAddon(extra)"
+              type="checkbox"
+              [formControlName]="i"
+            />
           </label>
         </div>
       </section>
 
+      <!-- Bagian 4: Kode Promo -->
       <section>
         <h2>4. Kode promo</h2>
         <div class="promo-row">
-          <input formControlName="promoCode" placeholder="Contoh: STAYNEW">
-          <button type="button" class="secondary" (click)="applyPromo()" [disabled]="promoLoading">{{ promoLoading ? 'Cek...' : 'Terapkan' }}</button>
-          <button type="button" class="clear" *ngIf="promoResult" (click)="clearPromo()">×</button>
+          <input formControlName="promoCode" placeholder="Contoh: STAYNEW" />
+          <button
+            type="button"
+            class="secondary"
+            (click)="applyPromo()"
+            [disabled]="promoLoading"
+          >
+            {{ promoLoading ? "Cek..." : "Terapkan" }}
+          </button>
+          <button
+            type="button"
+            class="clear"
+            *ngIf="promoResult"
+            (click)="clearPromo()"
+          >
+            ×
+          </button>
         </div>
-        <p class="promo-ok" *ngIf="promoResult?.isValid">✓ {{ promoResult?.message }} Hemat {{ promoResult?.discountAmount | rupiah }}.</p>
-        <p class="promo-bad" *ngIf="promoResult && !promoResult.isValid">{{ promoResult.message }}</p>
+        <p class="promo-ok" *ngIf="promoResult?.isValid">
+          ✓ {{ promoResult?.message }} Hemat
+          {{ promoResult?.discountAmount | rupiah }}.
+        </p>
+        <p class="promo-bad" *ngIf="promoResult && !promoResult.isValid">
+          {{ promoResult.message }}
+        </p>
       </section>
 
       <div class="form-error" *ngIf="error">{{ error }}</div>
-      <button class="submit" type="submit" [disabled]="submitting">
-        {{ submitting ? 'Membuat booking...' : 'Konfirmasi & booking →' }}
+      <button class="submit" type="submit" [disabled]="submitting || !roomId">
+        {{ submitting ? "Membuat booking..." : "Konfirmasi & booking →" }}
       </button>
     </form>
 
     <aside class="summary">
       <p class="eyebrow">ORDER SUMMARY</p>
       <h2>{{ room.name }}</h2>
-      <div class="room-meta">Kamar #{{ roomId || '—' }} · {{ summary.nights }} malam</div>
-      <div class="line"><span>Harga kamar</span><span>{{ summary.roomBase | rupiah }}</span></div>
-      <div class="line discount" *ngIf="summary.tierRate"><span>Long-stay ({{ summary.tierRate * 100 }}%)</span><span>- {{ (summary.roomBase * summary.tierRate) | rupiah }}</span></div>
-      <div class="line"><span>Subtotal kamar</span><span>{{ summary.roomSubtotal | rupiah }}</span></div>
-      <div class="line"><span>Add-ons</span><span>{{ summary.addOnsTotal | rupiah }}</span></div>
-      <div class="line" *ngIf="summary.lateCheckoutFee"><span>Late checkout</span><span>{{ summary.lateCheckoutFee | rupiah }}</span></div>
-      <div class="line discount" *ngIf="summary.promoDiscount"><span>Promo</span><span>- {{ summary.promoDiscount | rupiah }}</span></div>
-      <div class="total"><span>Total</span><strong>{{ summary.grandTotal | rupiah }}</strong></div>
+      <div class="room-meta">
+        Kamar #{{ roomId || "—" }} · {{ summary.nights }} malam
+      </div>
+      <div class="line">
+        <span>Harga kamar</span><span>{{ summary.roomBase | rupiah }}</span>
+      </div>
+      <div class="line discount" *ngIf="summary.tierRate">
+        <span>Long-stay ({{ summary.tierRate * 100 }}%)</span
+        ><span>- {{ summary.roomBase * summary.tierRate | rupiah }}</span>
+      </div>
+      <div class="line">
+        <span>Subtotal kamar</span
+        ><span>{{ summary.roomSubtotal | rupiah }}</span>
+      </div>
+      <div class="line">
+        <span>Add-ons</span><span>{{ summary.addOnsTotal | rupiah }}</span>
+      </div>
+      <div class="line discount" *ngIf="summary.promoDiscount">
+        <span>Promo</span><span>- {{ summary.promoDiscount | rupiah }}</span>
+      </div>
+      <div class="total">
+        <span>Total</span><strong>{{ summary.grandTotal | rupiah }}</strong>
+      </div>
       <div class="rule"></div>
-      <p class="tiny">Gratis sampai 15 menit setelah pukul 12:00. Denda late checkout: Rp50.000/jam, maksimal Rp250.000.</p>
+      <p class="tiny">
+        Gratis sampai 15 menit setelah pukul 12:00. Denda late checkout:
+        Rp50.000/jam, maksimal Rp250.000.
+      </p>
     </aside>
   </div>
 </div>
-<ng-template #loadingTpl><div class="state">Menyiapkan checkout...</div></ng-template>
+<ng-template #loadingTpl
+  ><div class="state">Menyiapkan checkout...</div></ng-template
+>

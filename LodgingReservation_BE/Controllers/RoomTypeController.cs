@@ -30,10 +30,11 @@ namespace LodgingReservation_BE.Controllers
       });
       return Ok(response);
     }
-    [HttpGet("{id:long}")]
+
+        [HttpGet("{id:long}")]
     public async Task<IActionResult> GetRoomTypeDetails(long id)
     {
-      var roomType = await _roomTypeRepository.GetByIdAsync(id);
+      var roomType = await _roomTypeRepository.GetByIdAsync(id, "Rooms");
       if (roomType == null)
       {
         return NotFound(new { message = "Tipe Kamar tidak ditemukan." });
@@ -45,7 +46,10 @@ namespace LodgingReservation_BE.Controllers
         roomType.BasePrice,
         roomType.Capacity,
         roomType.Description,
-        roomType.ImageUrl
+        roomType.ImageUrl,
+        Rooms = roomType.Rooms
+            .Where(r => r.Status == Models.Enum.RoomStatus.AVAILABLE)
+            .Select(r => new { r.Id, r.RoomNumber })
       });
     }
   }

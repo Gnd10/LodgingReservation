@@ -26,11 +26,3 @@
     </div>
   </nav>
 }
-<nav class="nav" *ngIf="auth.isLoggedIn()">
-  <a class="brand" routerLink="/rooms">LODGING<span>.</span></a>
-  <div class="links">
-    <a routerLink="/rooms" routerLinkActive="active">Kamar</a>
-    <span class="user">{{ auth.getUserName() }}</span>
-    <button (click)="logout()">Keluar</button>
-  </div>
-</nav>
