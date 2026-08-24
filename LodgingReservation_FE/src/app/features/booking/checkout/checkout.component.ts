@@ -53,6 +53,7 @@ export class CheckoutComponent implements OnInit {
   promoLoading = false;
   promoResult?: ValidatePromoResponse;
   error = '';
+  todayDate = ''; // Tanggal hari ini format YYYY-MM-DD
   summary: PriceSummary = {
     nights: 0,
     roomBase: 0,
@@ -81,6 +82,13 @@ export class CheckoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Inisialisasi tanggal hari ini untuk membatasi input tanggal minimal
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    this.todayDate = `${yyyy}-${mm}-${dd}`;
+
     const roomTypeId = Number(
       this.route.snapshot.queryParamMap.get('roomTypeId'),
     );
@@ -99,10 +107,9 @@ export class CheckoutComponent implements OnInit {
           ]);
         this.form.get('guestCount')?.updateValueAndValidity();
 
-        // Alokasikan ID kamar kosong pertama yang didapat dari database secara otomatis
+        // Alokasikan ID kamar kosong pertama secara default
         if (room.rooms && room.rooms.length > 0) {
-          this.roomId = room.rooms[0].id;
-          this.form.patchValue({ roomId: this.roomId });
+          this.selectRoom(room.rooms[0].id);
         } else {
           this.error =
             'Tidak ada kamar kosong yang tersedia untuk tipe kamar ini saat ini.';
@@ -120,7 +127,6 @@ export class CheckoutComponent implements OnInit {
 
     this.api.getExtraServices().subscribe({
       next: (data) => {
-        // Saring layanan agar mengabaikan "Late Check-out" (karena sudah ditagih offline di lokasi)
         this.extras = data.filter(
           (extra) =>
             !extra.name.toLowerCase().includes('late check-out') &&
@@ -138,7 +144,18 @@ export class CheckoutComponent implements OnInit {
     this.form.valueChanges.subscribe(() => this.recalculate());
   }
 
-  // Cek apakah layanan bertipe kuantitas angka (Kasur Tambahan / Extra Bed)
+  getSelectedRoomNumber(): string {
+    if (!this.room || !this.roomId) return '—';
+    const selected = this.room.rooms?.find((rm) => rm.id === this.roomId);
+    return selected ? selected.roomNumber : '—';
+  }
+
+  selectRoom(id: number): void {
+    this.roomId = id;
+    this.form.patchValue({ roomId: id });
+    this.recalculate();
+  }
+
   isNumberAddon(extra: ExtraService): boolean {
     const name = extra.name.toLowerCase();
     return name.includes('kasur') || name.includes('bed');
@@ -148,7 +165,6 @@ export class CheckoutComponent implements OnInit {
     if (!this.extras.length || this.addOns.length) return;
     this.extras.forEach((extra) => {
       if (this.isNumberAddon(extra)) {
-        // Input angka kasur dibatasi maksimal 2 unit
         this.addOns.push(
           this.fb.control(0, [Validators.min(0), Validators.max(2)]),
         );
@@ -182,17 +198,20 @@ export class CheckoutComponent implements OnInit {
         const rawUnit = extra.type ?? extra.unitType ?? '';
         const isPerson =
           rawUnit === 1 || String(rawUnit).toUpperCase() === 'PERSON';
-        // Jumlah sarapan otomatis mengikuti jumlah tamu, add-ons lain bernilai 1 jika dicentang
         quantity = isChecked ? (isPerson ? guestCount : 1) : 0;
       }
 
       const rawUnit = extra.type ?? extra.unitType ?? '';
       const isNight =
         rawUnit === 0 || String(rawUnit).toUpperCase() === 'NIGHT';
-      addOnsTotal += extra.price * quantity * (isNight ? nights : 1);
+      const isPerson =
+        rawUnit === 1 || String(rawUnit).toUpperCase() === 'PERSON';
+
+      const multiplyByNights = isNight || isPerson;
+      addOnsTotal += extra.price * quantity * (multiplyByNights ? nights : 1);
     });
 
-    const lateCheckoutFee = 0; // Selalu 0 di awal (Skenario 2)
+    const lateCheckoutFee = 0;
     const promoDiscount = this.promoResult?.isValid
       ? this.promoResult.discountAmount
       : 0;
@@ -281,7 +300,6 @@ export class CheckoutComponent implements OnInit {
       promotionId: this.promoResult?.isValid ? (promotion?.id ?? null) : null,
       roomIds: [this.roomId],
       checkInDate: `${this.form.get('checkIn')?.value}T00:00:00`,
-      // Paksa jam check-out ke jam 12:00 siang standar agar backend menghitung denda = 0
       checkOutDate: `${this.form.get('checkOut')?.value}T12:00:00`,
       lateCheckoutFee: 0,
       addOns: this.extras

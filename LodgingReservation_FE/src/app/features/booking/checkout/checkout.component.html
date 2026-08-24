@@ -12,7 +12,7 @@
       <!-- Bagian 1: Kamar & Kapasitas Tamu -->
       <section>
         <h2>1. Kamar & kapasitas</h2>
-        <div class="row">
+        <div class="row mb-6">
           <div>
             <label for="guestCount">Jumlah Tamu</label>
             <input
@@ -44,20 +44,31 @@
               >
             </div>
           </div>
-          <div>
-            <label>Alokasi Kamar</label>
-            <div
-              class="status-kamar text-emerald-600 font-semibold mt-2"
-              *ngIf="roomId"
+        </div>
+
+        <div class="room-selector mt-4">
+          <label class="block mb-2 text-xs font-bold text-textDark"
+            >Pilih nomor kamar</label
+          >
+          <div
+            class="flex flex-wrap gap-3"
+            *ngIf="room.rooms && room.rooms.length > 0"
+          >
+            <button
+              type="button"
+              *ngFor="let rm of room.rooms"
+              (click)="selectRoom(rm.id)"
+              [class.active-room]="roomId === rm.id"
+              class="room-btn"
             >
-              ✓ Kamar dialokasikan secara otomatis (#{{ roomId }})
-            </div>
-            <div
-              class="status-kamar text-red-600 font-semibold mt-2"
-              *ngIf="!roomId"
-            >
-              ✗ Kamar kosong tidak tersedia
-            </div>
+              {{ rm.roomNumber }}
+            </button>
+          </div>
+          <div
+            class="text-sm font-semibold text-red-600 mt-2"
+            *ngIf="!room.rooms || room.rooms.length === 0"
+          >
+            ✗ Tidak ada kamar kosong tersedia untuk tipe ini saat ini.
           </div>
         </div>
       </section>
@@ -66,9 +77,11 @@
       <section>
         <h2>2. Jadwal menginap</h2>
         <div class="row">
+          <!-- Batasi minimal check-in hari ini -->
           <div>
-            <label>Check-in</label
-            ><input type="date" formControlName="checkIn" /><small
+            <label>Check-in</label>
+            <input type="date" formControlName="checkIn" [min]="todayDate" />
+            <small
               *ngIf="
                 form.get('checkIn')?.touched &&
                 form.get('checkIn')?.hasError('pastDate')
@@ -76,9 +89,14 @@
               >Tanggal tidak boleh lewat.</small
             >
           </div>
+          <!-- Batasi minimal check-out = tanggal check-in (atau hari ini jika check-in belum dipilih) -->
           <div>
-            <label>Check-out</label
-            ><input type="date" formControlName="checkOut" />
+            <label>Check-out</label>
+            <input
+              type="date"
+              formControlName="checkOut"
+              [min]="form.get('checkIn')?.value || todayDate"
+            />
           </div>
         </div>
         <div
@@ -104,8 +122,6 @@
                 {{ extra.type || extra.unitType || "unit" }}</small
               >
             </div>
-
-            <!-- Render Input Angka khusus untuk Kasur Tambahan (max 2) -->
             <input
               *ngIf="isNumberAddon(extra)"
               type="number"
@@ -113,8 +129,6 @@
               max="2"
               [formControlName]="i"
             />
-
-            <!-- Render Checkbox untuk layanan lainnya -->
             <input
               *ngIf="!isNumberAddon(extra)"
               type="checkbox"
@@ -165,7 +179,7 @@
       <p class="eyebrow">ORDER SUMMARY</p>
       <h2>{{ room.name }}</h2>
       <div class="room-meta">
-        Kamar #{{ roomId || "—" }} · {{ summary.nights }} malam
+        Kamar #{{ getSelectedRoomNumber() }} · {{ summary.nights }} malam
       </div>
       <div class="line">
         <span>Harga kamar</span><span>{{ summary.roomBase | rupiah }}</span>

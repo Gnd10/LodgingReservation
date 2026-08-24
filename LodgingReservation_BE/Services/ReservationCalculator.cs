@@ -64,7 +64,7 @@ namespace LodgingReservation_BE.Services
                     var extraService = await extraServiceRepo.GetByIdAsync(item.ExtraServiceId);
                     if (extraService != null)
                     {
-                        decimal subTotalAddOn = extraService.Type == UnitType.NIGHT 
+                        decimal subTotalAddOn = (extraService.Type == UnitType.NIGHT || extraService.Type == UnitType.PERSON) 
                             ? extraService.Price * item.Quantity * result.TotalNights 
                             : extraService.Price * item.Quantity;
 

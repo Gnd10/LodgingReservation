@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-background">
-  <!-- Container Utama -->
   <main class="max-w-5xl mx-auto px-4 py-8">
     <!-- Title Page -->
     <div class="mb-8">
@@ -159,15 +158,15 @@
 
           <!-- Tombol Aksi -->
           <div class="space-y-2">
-            <!-- Tombol Detail -->
+            <!-- Tombol Detail Invoice -->
             <a
-              [routerLink]="['/bookings', booking.id]"
+              [routerLink]="['/booking', booking.id, 'invoice']"
               class="w-full text-center block bg-white hover:bg-slate-50 border border-border text-textDark text-xs font-semibold py-2 rounded-lg transition-colors cursor-pointer"
             >
               Lihat Invoice
             </a>
 
-            <!-- Tombol Batalkan (Hanya aktif jika status bukan Cancelled/Completed/CheckedIn) -->
+            <!-- Tombol Batalkan -->
             <button
               *ngIf="
                 booking.status !== 'Cancelled' &&

@@ -21,7 +21,8 @@ namespace LodgingReservation_BE.Services
             {
                 Id = s.Id,
                 Name = s.Name,
-                Price = s.Price
+                Price = s.Price,
+                Type = s.Type.ToString()
             });
         }
 
@@ -34,7 +35,8 @@ namespace LodgingReservation_BE.Services
             {
                 Id = service.Id,
                 Name = service.Name,
-                Price = service.Price
+                Price = service.Price,
+                Type = service.Type.ToString()
             };
         }
     }

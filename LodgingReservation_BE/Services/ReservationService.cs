@@ -1,8 +1,9 @@
-﻿using LodgingReservation_BE.DTOs;
+﻿using System.Security.Claims;
+using LodgingReservation_BE.DTOs;
 using LodgingReservation_BE.Models;
 using LodgingReservation_BE.Models.Enum;
 using LodgingReservation_BE.Repositories;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace LodgingReservation_BE.Services
 {
@@ -11,9 +12,9 @@ namespace LodgingReservation_BE.Services
         private readonly IRepository<Reservation> _reservationRepository;
         private readonly IRepository<Room> _roomRepository;
         private readonly IRepository<ReservationRoom> _reservationRoomRepository;
+        private readonly IRepository<ReservationAddOn> _reservationAddOnRepository;
         private readonly IRepository<ExtraService> _extraServiceRepository;
         private readonly IRepository<Promotion> _promotionRepository;
-        private readonly IRepository<ReservationAddOn> _reservationAddOnRepository;
         private readonly IRepository<Payment> _paymentRepository;
         private readonly ReservationCalculator _calculator;
         private readonly ILogger<ReservationService> _logger;
@@ -22,9 +23,9 @@ namespace LodgingReservation_BE.Services
             IRepository<Reservation> reservationRepository,
             IRepository<Room> roomRepository,
             IRepository<ReservationRoom> reservationRoomRepository,
+            IRepository<ReservationAddOn> reservationAddOnRepository,
             IRepository<ExtraService> extraServiceRepository,
             IRepository<Promotion> promotionRepository,
-            IRepository<ReservationAddOn> reservationAddOnRepository,
             IRepository<Payment> paymentRepository,
             ReservationCalculator calculator,
             ILogger<ReservationService> logger)
@@ -32,9 +33,9 @@ namespace LodgingReservation_BE.Services
             _reservationRepository = reservationRepository;
             _roomRepository = roomRepository;
             _reservationRoomRepository = reservationRoomRepository;
+            _reservationAddOnRepository = reservationAddOnRepository;
             _extraServiceRepository = extraServiceRepository;
             _promotionRepository = promotionRepository;
-            _reservationAddOnRepository = reservationAddOnRepository;
             _paymentRepository = paymentRepository;
             _calculator = calculator;
             _logger = logger;
@@ -42,35 +43,28 @@ namespace LodgingReservation_BE.Services
 
         public async Task<Reservation?> GetByIdAsync(long id)
         {
-            return await _reservationRepository.GetByIdAsync(
-                id, "User", "Promotion", "ReservationRooms.Room.RoomType", "ReservationAddOns.ExtraService");
+            return await _reservationRepository.GetByIdAsync(id, "User", "ReservationRooms.Room.RoomType", "Payments");
         }
 
         public async Task<List<Reservation>> GetAllAsync(string? status, DateTime? date)
         {
-            var reservations = await _reservationRepository.GetAllAsync("User", "Promotion", "ReservationRooms.Room.RoomType");
-
+            var all = await _reservationRepository.GetAllAsync("User", "ReservationRooms.Room.RoomType", "Payments");
+            var query = all.AsQueryable();
             if (!string.IsNullOrEmpty(status))
             {
-                if (!System.Enum.TryParse<ReservationStatus>(status, true, out var parsedStatus))
-                {
-                    throw new ArgumentException($"Status '{status}' tidak valid.");
-                }
-                reservations = reservations.Where(r => r.Status == parsedStatus).ToList();
+                query = query.Where(r => r.Status.ToString().Equals(status, StringComparison.OrdinalIgnoreCase));
             }
-
             if (date.HasValue)
             {
-                reservations = reservations.Where(r => r.CheckInDate.Date == date.Value.Date).ToList();
+                query = query.Where(r => r.CheckInDate.Date <= date.Value.Date && r.CheckOutDate.Date >= date.Value.Date);
             }
-
-            return reservations;
+            return query.ToList();
         }
 
         public async Task<List<Reservation>> GetUserHistoryAsync(long userId)
         {
-            var reservations = await _reservationRepository.GetAllAsync("User", "Promotion", "ReservationRooms.Room.RoomType");
-            return reservations.Where(r => r.UserId == userId).ToList();
+            var all = await _reservationRepository.GetAllAsync("User", "ReservationRooms.Room.RoomType", "Payments");
+            return all.Where(r => r.UserId == userId).ToList();
         }
 
         public async Task<ReservationResponse?> CreateAsync(CreateReservation request, long userId)
@@ -98,8 +92,9 @@ namespace LodgingReservation_BE.Services
                     BookingCode = "BOOK-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                     UserId = userId,
                     PromotionId = calculation.PromotionIdToSave,
-                    CheckInDate = request.CheckInDate,
-                    CheckOutDate = request.CheckOutDate,
+                    // Paksa zona waktu ke UTC agar PostgreSQL tidak error
+                    CheckInDate = DateTime.SpecifyKind(request.CheckInDate, DateTimeKind.Utc),
+                    CheckOutDate = DateTime.SpecifyKind(request.CheckOutDate, DateTimeKind.Utc),
                     Status = ReservationStatus.Confirmed,
                     TotalNights = calculation.TotalNights,
                     RoomSubtotal = calculation.RoomSubtotal,
@@ -120,6 +115,7 @@ namespace LodgingReservation_BE.Services
                     {
                         Reservation = reservation,
                         RoomId = room.Id,
+                        RoomTypeId = room.RoomTypeId,
                         PricePerNight = room.RoomType?.BasePrice ?? 0,
                         TotalRoomCost = (room.RoomType?.BasePrice ?? 0) * calculation.TotalNights * (1 - calculation.TierDiscount)
                     });
@@ -160,8 +156,9 @@ namespace LodgingReservation_BE.Services
             var reservation = await _reservationRepository.GetByIdAsync(id);
             if (reservation == null) return null;
 
-            reservation.CheckInDate = request.CheckInDate;
-            reservation.CheckOutDate = request.CheckOutDate;
+            // Paksa zona waktu ke UTC agar PostgreSQL tidak error saat update
+            reservation.CheckInDate = DateTime.SpecifyKind(request.CheckInDate, DateTimeKind.Utc);
+            reservation.CheckOutDate = DateTime.SpecifyKind(request.CheckOutDate, DateTimeKind.Utc);
 
             _reservationRepository.Update(reservation);
             await _reservationRepository.SaveChangesAsync();

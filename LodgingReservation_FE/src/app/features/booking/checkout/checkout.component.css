@@ -241,3 +241,33 @@ small {
   margin: 0 !important;
   cursor: pointer;
 }
+
+/* --- PEMILIH NOMOR KAMAR INTERAKTIF (BARU) --- */
+.room-selector {
+  margin-top: 18px;
+}
+.room-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 65px;
+  height: 55px;
+  border: 1px solid #d9d1c6;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #8a8177;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.room-btn:hover {
+  border-color: #27231f;
+  color: #27231f;
+}
+.room-btn.active-room {
+  background: #27231f !important;
+  color: #ffffff !important;
+  border-color: #27231f !important;
+  box-shadow: 0 4px 12px rgba(39, 35, 31, 0.15);
+}
